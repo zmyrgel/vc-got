@@ -58,9 +58,7 @@
 ;; - unregister                         DONE
 ;; * checkin                            DONE
 ;; * find-revision                      DONE
-;; * checkout                           NOT IMPLEMENTED
-;;      I'm not sure how to properly implement this.  Does filling
-;;      FILE with the find-revision do the trick?  Or use got update?
+;; * checkout                           DONE
 ;; * revert                             DONE
 ;; - merge-file                         NOT IMPLEMENTED
 ;; - merge-branch                       DONE
@@ -620,10 +618,11 @@ Got uses an implicit checkout model for every file."
     (vc-got-with-worktree file
       (vc-got--cat rev (file-relative-name file)))))
 
-(defun vc-got-checkout (_file &optional _rev)
+(defun vc-got-checkout (file &optional rev)
   "Checkout revision REV of FILE.
-If REV is t, checkout from the head."
-  (error "[vc-got] checkout not implemented"))
+The REV defaults to latest revision."
+  (apply #'vc-got-command nil 0 file "update" "-q"
+         (when rev (list "-c" rev))))
 
 (defun vc-got-revert (file &optional _content-done)
   "Revert FILE back to working revision."
