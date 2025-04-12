@@ -35,7 +35,7 @@
 ;;
 ;; BACKEND PROPERTIES:
 ;; * revision-granularity               DONE
-;; - update-on-retrieve-tag             XXX: what should this do?
+;; - update-on-retrieve-tag             DONE
 ;;
 ;; STATE-QUERYING FUNCTIONS:
 ;; * registered                         DONE
@@ -57,6 +57,7 @@
 ;; - receive-file                       NOT NEEDED, default `register' is fine
 ;; - unregister                         DONE
 ;; * checkin                            DONE
+;; - checkin-patch                      NOT IMPLEMENTED
 ;; * find-revision                      DONE
 ;; * checkout                           NOT IMPLEMENTED
 ;;      I'm not sure how to properly implement this.  Does filling
@@ -95,18 +96,20 @@
 ;; - region-history                     NOT IMPLEMENTED
 ;; - region-history-mode                NOT IMPLEMENTED
 ;; - mergebase                          NOT IMPLEMENTED
+;; - last-change                        NOT IMPLEMENTED
 ;;
 ;; TAG SYSTEM
 ;; - create-tag                         DONE
 ;; - retrieve-tag                       DONE
 ;;
-;; MISCELLANEOUS                        NOT IMPLEMENTED
+;; MISCELLANEOUS
 ;; - make-version-backups-p             NOT NEEDED, `got' works fine locally
 ;; - root                               DONE
 ;; - ignore                             NOT NEEDED, the default action is good
 ;; - ignore-completion-table            NOT NEEDED, the default action is good
 ;; - find-ignore-file                   DONE
 ;; - previous-revision                  DONE
+;; - file-name-changes                  NOT IMPLEMENTED
 ;; - next-revision                      DONE
 ;; - log-edit-mode                      NOT IMPLEMENTED
 ;; - check-headers                      NOT NEEDED, `got' does not use headers
@@ -117,6 +120,8 @@
 ;; - extra-dir-menu                     NOT IMPLEMENTED, same as above
 ;; - conflicted-files                   DONE
 ;; - repository-url                     DONE
+;; - prepare-patch                      NOT IMPLEMENTED
+;; - clone                              NOT IMPLEMENTED
 
 ;;; Code:
 
