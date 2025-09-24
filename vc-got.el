@@ -83,8 +83,8 @@
 ;; * log-incoming                       DONE
 ;; - log-search                         DONE
 ;; - log-view-mode                      DONE
-;; - show-log-entry                     NOT IMPLEMENTED
-;; - comment-history                    NOT IMPLEMENTED
+;; - show-log-entry                     DONE
+;; - comment-history                    DONE
 ;; - update-changelog                   NOT IMPLEMENTED
 ;; * diff                               DONE
 ;; - revision-completion-table          DONE
@@ -278,6 +278,18 @@ worktree."
         (delete-matching-lines
          "^-----------------------------------------------$")
           t))))
+
+(defun vc-got-show-log-entry (revision)
+  "Search for REVISION in current buffer and move to it."
+  (let (process-file-side-effects)
+    (goto-char (point-min))
+    (when revision
+      (search-forward (format "^commit %s" revision) nil t))))
+
+(defun vc-got-comment-history (file)
+  "Show all log entries for given FILE."
+  (let (process-file-side-effects)
+    (vc-got-command "*vc-log*" 'async file "log")))
 
 
 (defun vc-got--status (status-codes dir-or-file &optional files)
