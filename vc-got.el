@@ -264,7 +264,7 @@ worktree."
                         "-S")))
     (vc-got-with-worktree (or path default-directory)
       (save-excursion
-        (apply #'vc-got-command t 0 path "log"
+        (apply #'vc-got-command t 'async path "log"
                (mapcan (lambda (x)
                          (if (listp x) x nil))
                        (list (and limit (list "-l" (format "%s" limit)))
@@ -395,14 +395,14 @@ the specified PATHS."
 (defun vc-got--diff-files (files)
   "Compute the local modifications to FILES."
   (let (process-file-side-effects)
-    (apply #'vc-got-command t 0 files "diff" "-P" (vc-switches 'got 'diff))))
+    (apply #'vc-got-command t 'async files "diff" "-P" (vc-switches 'got 'diff))))
 
 (defun vc-got--diff-objects (obj1 obj2)
   "Diff the two objects OBJ1 and OBJ2.
 OBJ1 and OBJ2 are interpreted as a reference, tag name, or an
 object ID SHA1 hash."
   (let (process-file-side-effects)
-    (apply #'vc-got-command t 0 nil "diff"
+    (apply #'vc-got-command t 'async nil "diff"
            (append (vc-switches 'got 'diff)
                    (list "--" obj1 obj2)))))
 
@@ -762,7 +762,6 @@ Heavily inspired by `vc-git-log-view-mode'."
                   (2 'change-log-email))
                  ("^date: \\(.+\\)" (1 'change-log-date))))))
 
-;; TODO: async
 ;; TODO: return 0 or 1
 (defun vc-got-diff (files &optional rev1 rev2 buffer _async)
   "Insert into BUFFER (or *vc-diff*) the diff for FILES from REV1 to REV2."
