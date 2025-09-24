@@ -215,7 +215,7 @@ The difference to `vc-do-command' is that this function always invokes
 (defmacro vc-got-with-worktree (file &rest body)
   "Evaluate BODY in the work tree directory of FILE."
   (declare (debug t) (indent defun))
-  `(when-let (default-directory (vc-got-root ,file))
+  `(when-let* (default-directory (vc-got-root ,file))
      ,@body))
 
 (defun vc-got--repo-root ()
@@ -637,8 +637,8 @@ If REV is t, checkout from the head."
 (defun vc-got-merge-branch ()
   "Prompt for a branch and integrate it into the current one."
   ;; XXX: be smart and try to "got rebase" if "got integrate" fails?
-  (when-let ((branch (completing-read "Merge from branch: "
-                                      (mapcar #'car (vc-got--list-branches)))))
+  (when-let* ((branch (completing-read "Merge from branch: "
+                                       (mapcar #'car (vc-got--list-branches)))))
     (vc-got--integrate branch)))
 
 (defun vc-got--proc-filter (proc s)
@@ -664,12 +664,12 @@ It's like `vc-process-filter' but supports \\r inside S."
 (defun vc-got--push-pull (cmd op prompt)
   "Execute CMD OP, or prompt the user if PROMPT is non-nil."
   (let ((buffer (format "*vc-got : %s*" (expand-file-name default-directory))))
-    (when-let (cmd (if prompt
-                       (split-string
-                        (read-shell-command (format "%s %s command: " cmd op)
-                                            (format "%s %s " cmd op))
-                        " " t)
-                     (list cmd op)))
+    (when-let* (cmd (if prompt
+                        (split-string
+                         (read-shell-command (format "%s %s command: " cmd op)
+                                             (format "%s %s " cmd op))
+                         " " t)
+                      (list cmd op)))
       (apply #'vc-do-async-command buffer default-directory cmd)
       (with-current-buffer buffer
         (vc-compilation-mode 'got)
