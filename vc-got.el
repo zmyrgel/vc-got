@@ -96,7 +96,7 @@
 ;; - region-history                     NOT IMPLEMENTED
 ;; - region-history-mode                NOT IMPLEMENTED
 ;; - mergebase                          NOT IMPLEMENTED
-;; - last-change                        NOT IMPLEMENTED
+;; - last-change                        DONE
 ;;
 ;; TAG SYSTEM
 ;; - create-tag                         DONE
@@ -848,6 +848,19 @@ Value is returned as floating point fractional number of days."
     (beginning-of-line)
     (when (looking-at vc-got--annotate-re)
       (match-string-no-properties 1))))
+
+(defun vc-got-last-change (file line)
+  "Return the most recent revision of FILE that made a change on LINE."
+  (with-temp-buffer
+    (let (process-file-side-effects)
+      (vc-got-command t 0 file "blame")
+      (save-excursion
+        (goto-char (point-min))
+        (forward-line (1- line))
+        (cadr (split-string
+               (buffer-substring-no-properties
+                (line-beginning-position)
+                (line-end-position))))))))
 
 
 ;; Tag system
