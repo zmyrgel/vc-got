@@ -36,7 +36,7 @@
 ;; BACKEND PROPERTIES:
 ;; * revision-granularity               DONE
 ;; - update-on-retrieve-tag             DONE
-;; - async-checkins                     NOT IMPLEMENTED
+;; - async-checkins                     DONE
 ;;
 ;; STATE-QUERYING FUNCTIONS:
 ;; * registered                         DONE
@@ -295,6 +295,9 @@ worktree."
   "Show all log entries for given FILE."
   (let (process-file-side-effects)
     (vc-got-command "*vc-log*" 'async file "log")))
+
+
+(defalias 'vc-got-async-checkins #'ignore)
 
 
 (defun vc-got--status (status-codes dir-or-file &optional files)
