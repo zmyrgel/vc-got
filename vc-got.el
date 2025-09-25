@@ -77,9 +77,10 @@
 ;;      can be implemented via histedit, if I understood correctly
 ;;      what it is supposed to do.
 ;; - mark-resolved                      NOT NEEDED
-;;      got notice by itself when a file doesn't have any pending
-;;      conflicts to be resolved.
 ;; - find-admin-dir                     NOT NEEDED
+;; - add-working-tree                   DONE
+;; - delete-working-tree                DONE
+;; - move-working-tree                  DONE
 ;;
 ;; HISTORY FUNCTIONS
 ;; * print-log                          DONE
@@ -719,6 +720,26 @@ It's like `vc-process-filter' but supports \\r inside S."
 (defun vc-got-get-change-comment (_files rev)
   "Return the change comments given REV. The files argument is ignored."
   (vc-got--log nil 1 rev))
+
+(defun vc-got-add-working-tree (dir)
+  "Checkout a new work tree to DIR."
+  (when-let* ((branch (completing-read "Create new work tree from branch: "
+                                       (mapcar #'car (vc-got--list-branches)))))
+    (vc-got-command nil 0 dir "checkout" (list "-b" branch))))
+
+(defun vc-got-delete-working-tree (dir)
+  "Delete a work tree."
+  (if (file-exists-p (expand-file-name ".got" dir))
+      (delete-directory dir t)
+    (error "directory %s is missing .got directory" dir)))
+
+(defun vc-got-move-working-tree (from to)
+  "Move given got work tree to new location."
+  (if (file-exists-p (expand-file-name ".got" dir))
+      (progn
+        (copy-directory from to)
+        (delete-directory from))
+    (error "directory %s is missing .got directory" dir)))
 
 
 ;; History functions
