@@ -193,7 +193,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (let (process-file-side-effects)
     (with-temp-buffer
       (vc-got--call "-V")
-      (buffer-substring-no-properties pos (line-end-position)))))
+      (buffer-substring-no-properties 5 (1- (line-end-position))))))
 
 (defun vc-got--version<= (target)
   "Compare the current version against TARGET.
