@@ -67,8 +67,9 @@
 ;; - merge-branch                       DONE
 ;; - merge-news                         NOT IMPLEMENTED
 ;; - pull                               DONE
-;; - push                               DONE
+;; - push                               DONE XXX: this is gone?
 ;; - steal-lock                         NOT NEEDED, `got' is not using locks
+;; - get-change-comment                 DONE
 ;; - modify-change-comment              NOT IMPLEMENTED
 ;;      can be implemented via histedit, if I understood correctly
 ;;      what it is supposed to do.
@@ -707,6 +708,10 @@ It's like `vc-process-filter' but supports \\r inside S."
 (defun vc-got-push (prompt)
   "Execute a send prompting for the full command if PROMPT is not nil."
   (vc-got--push-pull vc-got-program "send" prompt))
+
+(defun vc-got-get-change-comment (_files rev)
+  "Return the change comments given REV. The files argument is ignored."
+  (vc-got--log nil 1 rev))
 
 
 ;; History functions
