@@ -36,6 +36,7 @@
 ;; BACKEND PROPERTIES:
 ;; * revision-granularity               DONE
 ;; - update-on-retrieve-tag             DONE
+;; - async-checkins                     NOT IMPLEMENTED
 ;;
 ;; STATE-QUERYING FUNCTIONS:
 ;; * registered                         DONE
@@ -47,6 +48,7 @@
 ;; * working-revision                   DONE
 ;; * checkout-model                     DONE
 ;; - mode-line-string                   DONE
+;; - known-other-working-trees          NOT IMPLEMENTED
 ;;
 ;; STATE-CHANGING FUNCTIONS:
 ;; * create-repo                        NOT IMPLEMENTED
@@ -80,8 +82,9 @@
 ;;
 ;; HISTORY FUNCTIONS
 ;; * print-log                          DONE
-;; * log-outgoing                       DONE
-;; * log-incoming                       DONE
+;; * log-outgoing                       DONE (DEPRECATED)
+;; * log-incoming                       DONE (DEPRECATED)
+;; - incoming-revision                  NOT IMPLEMENTED
 ;; - log-search                         DONE
 ;; - log-view-mode                      DONE
 ;; - show-log-entry                     DONE
@@ -91,8 +94,7 @@
 ;; - revision-completion-table          DONE
 ;; - annotate-command                   DONE
 ;; - annotate-time                      DONE
-;; - annotate-current-time              NOT NEEDED
-;;      the default time handling is enough.
+;; - annotate-current-time              NOT NEEDED, defaults are fine.
 ;; - annotate-extract-revision-at-line  DONE
 ;; - region-history                     NOT IMPLEMENTED
 ;; - region-history-mode                NOT IMPLEMENTED
