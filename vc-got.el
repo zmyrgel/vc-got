@@ -65,6 +65,7 @@
 ;;      I'm not sure how to properly implement this.  Does filling
 ;;      FILE with the find-revision do the trick?  Or use got update?
 ;; * revert                             DONE
+;; - revert-files                       DONE
 ;; - merge-file                         NOT IMPLEMENTED
 ;; - merge-branch                       DONE
 ;; - merge-news                         NOT IMPLEMENTED
@@ -648,6 +649,10 @@ If REV is t, checkout from the head."
 (defun vc-got-revert (file &optional _content-done)
   "Revert FILE back to working revision."
   (vc-got--revert file))
+
+(defun vc-got-revert-files (files)
+  "Mass-revert of FILES."
+  (apply #'vc-got--revert files))
 
 (defun vc-got-merge-branch ()
   "Prompt for a branch and integrate it into the current one."
