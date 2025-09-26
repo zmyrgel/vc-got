@@ -123,8 +123,8 @@
 ;; - extra-dir-menu                     NOT IMPLEMENTED, same as above
 ;; - conflicted-files                   DONE
 ;; - repository-url                     DONE
-;; - clone                              NOT IMPLEMENTED
 ;; - prepare-patch                      DONE
+;; - clone                              DONE
 
 ;;; Code:
 
@@ -1049,6 +1049,13 @@ true, NAME should create a new branch otherwise it will pop-up a
         (list :subject subject
               :buffer (current-buffer)
               :body-start (point))))))
+
+(defun vc-got-clone (remote directory rev)
+  "Attempt to clone a REMOTE repository to a DIRECTORY."
+  (when rev
+    (error "[vc-got] support for `rev' parameter is not implemented"))
+  (vc-got-command nil 'async (list remote directory) "clone" "-a")
+  directory)
 
 
 
