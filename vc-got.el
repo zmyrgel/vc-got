@@ -123,8 +123,8 @@
 ;; - extra-dir-menu                     NOT IMPLEMENTED, same as above
 ;; - conflicted-files                   DONE
 ;; - repository-url                     DONE
-;; - prepare-patch                      NOT IMPLEMENTED
 ;; - clone                              NOT IMPLEMENTED
+;; - prepare-patch                      DONE
 
 ;;; Code:
 
@@ -1034,6 +1034,21 @@ true, NAME should create a new branch otherwise it will pop-up a
               (setq found (match-string-no-properties 1)))
             (forward-line))
           found)))))
+
+(defun vc-got-prepare-patch (rev)
+  "Prepare patch for transmission."
+  (with-current-buffer (generate-new-buffer " *vc-got-prepare-patch*")
+    (let (process-file-side-effects)
+      (vc-got-command t 0 nil "log" "-p" "-x" rev "-c" rev)
+      (let (subject)
+        (goto-char (point-min))
+        (search-forward-regexp "^from: \\(.+\\)")
+        (setq subject (match-string 1))
+        (search-forward-regexp "^date:")
+        (forward-line 2)
+        (list :subject subject
+              :buffer (current-buffer)
+              :body-start (point))))))
 
 
 
