@@ -51,9 +51,7 @@
 ;; - known-other-working-trees          NOT IMPLEMENTED
 ;;
 ;; STATE-CHANGING FUNCTIONS:
-;; * create-repo                        NOT IMPLEMENTED
-;;      I don't think got init does what this function is supposed to
-;;      do.
+;; * create-repo                        DONE
 ;; * register                           DONE
 ;; - responsible-p                      DONE
 ;; - receive-file                       NOT NEEDED, default `register' is fine
@@ -617,9 +615,16 @@ Got uses an implicit checkout model for every file."
 
 ;; state-changing functions
 
-(defun vc-got-create-repo (_backend)
-  "Create an empty repository in the current directory."
-  (error "[vc-got] create-repo not implemented"))
+(defun vc-got-create-repo ()
+  "Creates an empty repository with `got init' in the current directory and
+populates it with files from a directory polled from user."
+  (let ((repo-directory (expand-file-name default-directory))
+        (import-directory (read-directory-name "What directory to import from?"))
+        (message (read-string "Message for import commit: ")))
+    (when (file-exists-p (expand-file-name ".got" repo-directory))
+      (error "Directory is already contains a .got directory"))
+      (vc-got-command nil 0 repo-directory "init")
+    (vc-got-command t 'async import-directory "import" "-m" message)))
 
 (defun vc-got-register (files &optional _comment)
   "Register FILES, passing `vc-register-switches' to the backend command."
