@@ -743,11 +743,11 @@ It's like `vc-process-filter' but supports \\r inside S."
 
 (defun vc-got-move-working-tree (from to)
   "Move given got work tree to new location."
-  (if (file-exists-p (expand-file-name ".got" dir))
+  (if (file-exists-p (expand-file-name ".got" from))
       (progn
         (copy-directory from to)
         (delete-directory from))
-    (error "directory %s is missing .got directory" dir)))
+    (error "directory %s is missing .got directory" from)))
 
 
 ;; History functions
