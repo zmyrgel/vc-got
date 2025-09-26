@@ -692,27 +692,27 @@ It's like `vc-process-filter' but supports \\r inside S."
 
 (defun vc-got--push-pull (cmd op prompt)
   "Execute CMD OP, or prompt the user if PROMPT is non-nil."
-  (let ((buffer (format "*vc-got : %s*" (expand-file-name default-directory))))
-    (when-let* (cmd (if prompt
-                        (split-string
-                         (read-shell-command (format "%s %s command: " cmd op)
-                                             (format "%s %s " cmd op))
-                         " " t)
-                      (list cmd op)))
-      (apply #'vc-do-async-command buffer default-directory cmd)
-      (with-current-buffer buffer
-        (vc-compilation-mode 'got)
-        (let ((comp-cmd (mapconcat #'identity cmd " "))
-              (proc (get-buffer-process buffer)))
-          (setq-local compile-command comp-cmd)
-          (setq-local compilation-directory default-directory)
-          (setq-local compilation-arguments (list comp-cmd
-                                                  nil
-                                                  (lambda (_ign) buffer)
-                                                  nil))
-          ;; Setup a custom process filter that handles \r.
-          (set-process-filter proc #'vc-got--proc-filter)))
-      (vc-set-async-update buffer))))
+  (when-let* ((buffer (format "*vc-got : %s*" (expand-file-name default-directory)))
+              (cmd (if prompt
+                       (split-string
+                        (read-shell-command (format "%s %s command: " cmd op)
+                                            (format "%s %s " cmd op))
+                        " " t)
+                     (list cmd op))))
+    (apply #'vc-do-async-command buffer default-directory cmd)
+    (with-current-buffer buffer
+      (vc-compilation-mode 'got)
+      (let ((comp-cmd (mapconcat #'identity cmd " "))
+            (proc (get-buffer-process buffer)))
+        (setq-local compile-command comp-cmd)
+        (setq-local compilation-directory default-directory)
+        (setq-local compilation-arguments (list comp-cmd
+                                                nil
+                                                (lambda (_ign) buffer)
+                                                nil))
+        ;; Setup a custom process filter that handles \r.
+        (set-process-filter proc #'vc-got--proc-filter)))
+    (vc-set-async-update buffer)))
 
 ;; TODO: this could be expanded.  After a pull the worktree needs to
 ;; be updated, either with a ``got update -b branch-name'' or ``got
