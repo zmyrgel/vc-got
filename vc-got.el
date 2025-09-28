@@ -59,9 +59,7 @@
 ;; * checkin                            DONE
 ;; - checkin-patch                      NOT IMPLEMENTED
 ;; * find-revision                      DONE
-;; * checkout                           NOT IMPLEMENTED
-;;      I'm not sure how to properly implement this.  Does filling
-;;      FILE with the find-revision do the trick?  Or use got update?
+;; * checkout                           DONE
 ;; * revert                             DONE
 ;; - revert-files                       DONE
 ;; - merge-file                         NOT IMPLEMENTED
@@ -650,10 +648,18 @@ populates it with files from a directory polled from user."
     (vc-got-with-worktree file
       (vc-got--cat rev (file-relative-name file)))))
 
-(defun vc-got-checkout (_file &optional _rev)
+(defun vc-got-checkout (file &optional rev)
   "Checkout revision REV of FILE.
-If REV is t, checkout from the head."
-  (error "[vc-got] checkout not implemented"))
+The REV defaults to latest revision."
+  (with-temp-buffer
+    ;; NOTE: intentiolly does not pass vc-checkout-switches as `got'
+    ;; does not support extra flags.
+    (let ((rev-arg (cond ((string= rev "") ":head") ;; head of trunk
+                         ((stringp rev) rev) ;; the revision itself
+                         ((not (null rev)) ":base")))) ;; head of branch
+      (vc-got-command t 0 file "cat" "-P" "-c" rev-arg)
+      (setq buffer-file-name file)
+      (basic-save-buffer))))
 
 (defun vc-got-revert (file &optional _content-done)
   "Revert FILE back to working revision."
