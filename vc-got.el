@@ -82,7 +82,7 @@
 ;; * print-log                          DONE
 ;; * log-outgoing                       DONE (DEPRECATED)
 ;; * log-incoming                       DONE (DEPRECATED)
-;; - incoming-revision                  NOT IMPLEMENTED
+;; - incoming-revision                  DONE
 ;; - log-search                         DONE
 ;; - log-view-mode                      DONE
 ;; - show-log-entry                     DONE
@@ -818,6 +818,25 @@ That is, the diff between REMOTE-LOCATION and the local repository."
         (inhibit-read-only t))
     (with-current-buffer buffer
       (vc-got--log nil nil (vc-got--current-branch) rl))))
+
+(defun vc-got-incoming-revision (upstream-location &optional refresh)
+  "Fetch and return revision at the head of the branch at UPSTREAM-LOCATION.
+If there is no such branch there, return nil. (Should signal an error,
+not return nil, in the case that fetching data fails.) The backend may rely on cached
+information from a previous fetch from UPSTREAM-LOCATION unless REFRESH
+is non-nil, which means that the most up-to-date information possible is
+required."
+  ;; TODO: skip caching for until clear when we can use it
+  (when (or refresh t)
+    ;; TODO: add some switches support here, jump host etc.
+    (vc-got-command nil 0 nil "fetch"))
+  (ignore-errors            ; in order to return nil if no such branch
+    (with-temp-buffer
+      (vc-got-command t 0 nil "log" "-s" "-l" 1 "-c" ":head")
+      (cadr (split-string
+             (buffer-substring-no-properties
+              (line-beginning-position)
+              (line-end-position)))))))
 
 (defun vc-got-log-search (buffer pattern)
   "Search commits for PATTERN and write the results found in BUFFER."
