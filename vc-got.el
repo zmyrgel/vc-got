@@ -96,7 +96,7 @@
 ;; - annotate-extract-revision-at-line  DONE
 ;; - region-history                     NOT IMPLEMENTED
 ;; - region-history-mode                NOT IMPLEMENTED
-;; - mergebase                          NOT IMPLEMENTED
+;; - mergebase                          DONE? Returns ./.got/base-commit
 ;; - last-change                        DONE
 ;;
 ;; TAG SYSTEM
@@ -948,6 +948,17 @@ Value is returned as floating point fractional number of days."
     (beginning-of-line)
     (when (looking-at vc-got--annotate-re)
       (match-string-no-properties 1))))
+
+(defun vc-got--work-tree-base-commit (file)
+  "Return the work tree base commit."
+  (with-temp-buffer
+    (when-let* ((root-dir (vc-got-root file)))
+      (insert-file-contents (expand-file-name root-dir ".got/base-commit"))
+      (string-trim (buffer-string)))))
+
+(defun vc-got-mergebase (rev1 &optional rev2)
+  "Find common ancestor of commits REV1 and optional REV2."
+  (vc-go--work-tree-base-commit default-directory))
 
 (defun vc-got-last-change (file line)
   "Return the most recent revision of FILE that made a change on LINE."
