@@ -1014,23 +1014,25 @@ true, NAME should create a new branch otherwise it will pop-up a
 (defun vc-got-previous-revision (file rev)
   "Return the revision number that precedes REV for FILE or nil."
   (with-temp-buffer
-    (vc-got--log file 2 rev nil nil t)
-    (goto-char (point-min))
-    (keep-lines "^commit")
-    (when (looking-at vc-got--commit-re)
+    ;; NOTE: 2025-10-04: got currently does not allow iterating log
+    ;; entries to paths efficiently, so we need to query all revisions
+    ;; of a file and look for matches ourselves.
+    (vc-got--log file nil rev)
+    (when-let* ((commit-line (progn
+                               (re-search-forward vc-got--commit-re nil t)
+                               (re-search-forward vc-got--commit-re nil t))))
       (match-string-no-properties 1))))
 
 (defun vc-got-next-revision (file rev)
   "Return the revision number that follows REV for FILE or nil."
   (with-temp-buffer
     (vc-got--log file nil nil rev)
-    (keep-lines "^commit" (point-min) (point-max))
     (goto-char (point-max))
-    (forward-line -1)    ; return from empty line to last actual commit
-    (unless (= (point) (point-min))
-      (forward-line -1)
-      (when (looking-at vc-got--commit-re)
-        (match-string-no-properties 1)))))
+    (when-let* ((commit-line (progn
+                               ;; first is REV, next match is the previous
+                               (re-search-backward vc-got--commit-re nil t)
+                               (re-search-backward vc-got--commit-re nil t))))
+      (match-string-no-properties 1))))
 
 (defun vc-got-delete-file (file)
   "Delete FILE locally and mark it deleted in work tree."
