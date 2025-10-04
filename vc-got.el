@@ -674,11 +674,11 @@ populates it with files from a directory polled from user."
   "Checkout revision REV of FILE.
 The REV defaults to latest revision."
   (with-temp-buffer
-    ;; NOTE: intentiolly does not pass vc-checkout-switches as `got'
+    ;; NOTE: intentionally does not pass vc-checkout-switches as `got'
     ;; does not support extra flags.
-    (let ((rev-arg (cond ((string= rev "") ":head") ;; head of trunk
+    (let ((rev-arg (cond ((and (stringp rev) (string-empty-p rev)) ":head") ;; head of trunk
                          ((stringp rev) rev) ;; the revision itself
-                         ((not (null rev)) ":base")))) ;; head of branch
+                         (rev ":base")))) ;; head of branch
       (vc-got-command t 0 file "cat" "-P" "-c" rev-arg)
       (setq buffer-file-name file)
       (basic-save-buffer))))
