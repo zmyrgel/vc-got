@@ -62,9 +62,9 @@
 ;; * checkout                           DONE
 ;; * revert                             DONE
 ;; - revert-files                       DONE
-;; - merge-file                         NOT IMPLEMENTED
+;; - merge-file                         NOT NEEDED, for non-distributed VCS
 ;; - merge-branch                       DONE
-;; - merge-news                         NOT IMPLEMENTED
+;; - merge-news                         NOT NEEDED, for non-distributed VCS
 ;; - pull                               DONE
 ;; - push                               DONE XXX: this is gone?
 ;; - steal-lock                         NOT NEEDED, `got' is not using locks
