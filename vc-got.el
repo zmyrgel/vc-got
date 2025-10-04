@@ -953,13 +953,12 @@ Value is returned as floating point fractional number of days."
   (with-temp-buffer
     (let (process-file-side-effects)
       (vc-got-command t 0 file "blame")
-      (save-excursion
-        (goto-char (point-min))
-        (forward-line (1- line))
-        (cadr (split-string
-               (buffer-substring-no-properties
-                (line-beginning-position)
-                (line-end-position))))))))
+      (goto-char (point-min))
+      (forward-line (1- line))
+      (cadr (split-string
+             (buffer-substring-no-properties
+              (line-beginning-position)
+              (line-end-position)))))))
 
 
 ;; Tag system
