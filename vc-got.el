@@ -621,8 +621,9 @@ populates it with files from a directory polled from user."
         (import-directory (read-directory-name "What directory to import from?"))
         (message (read-string "Message for import commit: ")))
     (when (file-exists-p (expand-file-name ".got" repo-directory))
-      (error "Directory is already contains a .got directory"))
-      (vc-got-command nil 0 repo-directory "init")
+      (error "Directory already contains a .got directory"))
+    ;; TODO: support vc-got-create-repo-switches for -I .git etc.
+    (vc-got-command nil 0 repo-directory "init" )
     (vc-got-command t 'async import-directory "import" "-m" message)))
 
 (defun vc-got-register (files &optional _comment)
