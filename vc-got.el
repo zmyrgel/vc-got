@@ -764,7 +764,7 @@ It's like `vc-process-filter' but supports \\r inside S."
   "Checkout a new work tree to DIR."
   (when-let* ((branch (completing-read "Create new work tree from branch: "
                                        (mapcar #'car (vc-got--list-branches)))))
-    (vc-got-command nil 0 dir "checkout" (list "-b" branch))))
+    (vc-got-command nil 0 dir "checkout" "-b" branch)))
 
 (defun vc-got-delete-working-tree (dir)
   "Delete a work tree."
