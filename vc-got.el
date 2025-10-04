@@ -385,10 +385,6 @@ ROOT is the root of the repo."
       (when (zerop (vc-got--call "branch"))
         (string-trim (buffer-string) "" "\n")))))
 
-(defun vc-got--integrate (branch)
-  "Integrate BRANCH into the current one."
-  (vc-got-command nil 0 nil "integrate" branch))
-
 (defun vc-got--update (branch &optional paths)
   "Update to a different commit or BRANCH.
 Optionally restrict the update operation to files at or within
@@ -699,7 +695,7 @@ The REV defaults to latest revision."
   ;; XXX: be smart and try to "got rebase" if "got integrate" fails?
   (when-let* ((branch (completing-read "Merge from branch: "
                                        (mapcar #'car (vc-got--list-branches)))))
-    (vc-got--integrate branch)))
+    (vc-got-command nil 0 nil "integrate" branch)))
 
 (defun vc-got--proc-filter (proc s)
   "Custom output filter for async process PROC.
