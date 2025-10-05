@@ -176,6 +176,16 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string)))
 
+(defcustom vc-got-pull-switches nil
+  "String or list of strings specifying switches for `got fetch' when running `vc-pull'."
+  :type '(choice (string :tag "Argument String")
+                 (repeat :tag "Argument List" :value ("") string)))
+
+(defcustom vc-got-push-switches nil
+  "String or list of strings specifying switches for `got send' when running `vc-push'."
+  :type '(choice (string :tag "Argument String")
+                 (repeat :tag "Argument List" :value ("") string)))
+
 (defcustom vc-got-create-repo-init-switches nil
   "String or list of strings specifying switches for `got init' when running `vc-create-repo'."
   :type '(choice (string :tag "Argument String")
@@ -750,15 +760,16 @@ It's like `vc-process-filter' but supports \\r inside S."
               (insert (match-string 1 s)))
             (set-marker (process-mark proc) (point))))))))
 
-(defun vc-got--push-pull (cmd op prompt)
-  "Execute CMD OP, or prompt the user if PROMPT is non-nil."
+(defun vc-got--push-pull (cmd args prompt)
+  "Execute CMD ARGS, or prompt the user if PROMPT is non-nil."
   (when-let* ((buffer (format "*vc-got : %s*" (expand-file-name default-directory)))
               (cmd (if prompt
                        (split-string
-                        (read-shell-command (format "%s %s command: " cmd op)
-                                            (format "%s %s " cmd op))
+                        (let ((op (string-join args " ")))
+                          (read-shell-command (format "%s %s command: " cmd op)
+                                              (format "%s %s " cmd op)))
                         " " t)
-                     (list cmd op))))
+                     (cons cmd args))))
     (apply #'vc-do-async-command buffer default-directory cmd)
     (with-current-buffer buffer
       (vc-compilation-mode 'got)
@@ -779,11 +790,15 @@ It's like `vc-process-filter' but supports \\r inside S."
 ;; update -b remote/branchname'' plus a rebase.
 (defun vc-got-pull (prompt)
   "Execute a fetch prompting for the full command if PROMPT is not nil."
-  (vc-got--push-pull vc-got-program "fetch" prompt))
+  (vc-got--push-pull vc-got-program
+                     (cons "fetch" (ensure-list vc-got-push-switches))
+                     prompt))
 
 (defun vc-got-push (prompt)
   "Execute a send prompting for the full command if PROMPT is not nil."
-  (vc-got--push-pull vc-got-program "send" prompt))
+  (vc-got--push-pull vc-got-program
+                     (cons "send" (ensure-list vc-got-push-switches))
+                     prompt))
 
 (defun vc-got-get-change-comment (_files rev)
   "Return the change comments given REV. The files argument is ignored."
