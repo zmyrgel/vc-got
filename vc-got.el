@@ -757,6 +757,13 @@ It's like `vc-process-filter' but supports \\r inside S."
   "Return the change comments given REV. The files argument is ignored."
   (vc-got--log nil 1 rev))
 
+(defun vc-got--work-tree-uuid (&optional file)
+  "Return the work tree UUID."
+  (with-temp-buffer
+    (when-let* ((root-dir (vc-got-root (or file default-directory))))
+      (insert-file-contents (expand-file-name ".got/uuid" root-dir))
+      (string-trim (buffer-string)))))
+
 (defun vc-got-add-working-tree (dir)
   "Checkout a new work tree to DIR."
   (when-let* ((branch (completing-read "Create new work tree from branch: "
@@ -765,9 +772,11 @@ It's like `vc-process-filter' but supports \\r inside S."
 
 (defun vc-got-delete-working-tree (dir)
   "Delete a work tree."
-  (if (file-exists-p (expand-file-name ".got" dir))
-      (delete-directory dir t)
-    (error "directory %s is missing .got directory" dir)))
+  (if-let* ((uuid (vc-got--work-tree-uuid dir)))
+      (with-temp-buffer
+        (vc-got-command t 0 (concat "refs/got/worktree/base-" uuid) "ref" "-d")
+        (delete-directory dir t))
+    (error "Directory %s is not a got work tree." from)))
 
 (defun vc-got-move-working-tree (from to)
   "Move given got work tree to new location."
