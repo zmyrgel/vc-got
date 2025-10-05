@@ -177,22 +177,26 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (repeat :tag "Argument List" :value ("") string)))
 
 (defcustom vc-got-pull-switches nil
-  "String or list of strings specifying switches for `got fetch' when running `vc-pull'."
+  "String or list of strings specifying switches for `got fetch' when
+running `vc-pull'."
   :type '(choice (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string)))
 
 (defcustom vc-got-push-switches nil
-  "String or list of strings specifying switches for `got send' when running `vc-push'."
+  "String or list of strings specifying switches for `got send' when
+running `vc-push'."
   :type '(choice (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string)))
 
 (defcustom vc-got-create-repo-init-switches nil
-  "String or list of strings specifying switches for `got init' when running `vc-create-repo'."
+  "String or list of strings specifying switches for `got init' when
+running `vc-create-repo'."
   :type '(choice (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string)))
 
 (defcustom vc-got-create-repo-import-switches nil
-  "String or list of strings specifying switches for `got import' when running `vc-create-repo'."
+  "String or list of strings specifying switches for `got import' when
+running `vc-create-repo'."
   :type '(choice (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string)))
 
