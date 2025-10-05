@@ -196,6 +196,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :type '(choice (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string)))
 
+(defcustom vc-got-incoming-revision-switches nil
+  "A string or list of strings specifying extra switches passed on for
+`vc-got-incoming-revision'."
+  :type '(choice (const :tag "None" nil)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List" :value ("") string)))
+
 (defcustom vc-got-clone-switches (list "-a")
   "A string or list of strings specifying extra switches passed on for
 `vc-got-clone'."
@@ -881,8 +888,8 @@ is non-nil, which means that the most up-to-date information possible is
 required."
   ;; TODO: skip caching for until clear when we can use it
   (when (or refresh t)
-    ;; TODO: add some switches support here, jump host etc.
-    (vc-got-command nil 0 nil "fetch"))
+    (apply #'vc-got-command nil 0 nil "fetch"
+           (ensure-list vc-got-incoming-revision-switches)))
   (ignore-errors            ; in order to return nil if no such branch
     (with-temp-buffer
       (vc-got-command t 0 nil "log" "-s" "-l" 1 "-c" ":head")
