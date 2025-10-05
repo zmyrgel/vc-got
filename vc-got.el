@@ -176,6 +176,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string)))
 
+
+(defcustom vc-got-log-keep-separators nil
+  "Non-nil to allow keeping the log entry separators in buffers.
+Enabling this means the '---' lines are displayed in the log buffers."
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t)))
+
 ;; helpers
 (defmacro vc-got--with-emacs-version<= (version &rest body)
   "Eval BODY only when the Emacs version in greater or equal VERSION."
@@ -279,8 +286,9 @@ worktree."
                              (and reverse '("-R"))
                              (and include-diff '("-p")))))
         (goto-char (point-min))
-        (delete-matching-lines
-         "^-----------------------------------------------$")
+        (unless vc-got-log-keep-separators
+          (delete-matching-lines
+           "^-----------------------------------------------$"))
           t))))
 
 (defun vc-got-show-log-entry (revision)
