@@ -176,6 +176,16 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string)))
 
+(defcustom vc-got-create-repo-init-switches nil
+  "String or list of strings specifying switches for `got init' when running `vc-create-repo'."
+  :type '(choice (string :tag "Argument String")
+                 (repeat :tag "Argument List" :value ("") string)))
+
+(defcustom vc-got-create-repo-import-switches nil
+  "String or list of strings specifying switches for `got import' when running `vc-create-repo'."
+  :type '(choice (string :tag "Argument String")
+                 (repeat :tag "Argument List" :value ("") string)))
+
 (defcustom vc-got-clone-switches (list "-a")
   "A string or list of strings specifying extra switches passed on for
 `vc-got-clone'."
@@ -641,9 +651,11 @@ populates it with files from a directory polled from user."
         (message (read-string "Message for import commit: ")))
     (when (file-exists-p (expand-file-name ".got" repo-directory))
       (error "Directory already contains a .got directory"))
-    ;; TODO: support vc-got-create-repo-switches for -I .git etc.
-    (vc-got-command nil 0 repo-directory "init" )
-    (vc-got-command t 'async import-directory "import" "-m" message)))
+    (apply #'vc-got-command nil 0 repo-directory "init"
+           (ensure-list vc-got-create-repo-init-switches))
+    (apply #'vc-got-command t 'async import-directory "import"
+           (append (list "-m" message)
+                   (ensure-list vc-got-create-repo-import-switches)))))
 
 (defun vc-got-register (files &optional _comment)
   "Register FILES, passing `vc-register-switches' to the backend command."
