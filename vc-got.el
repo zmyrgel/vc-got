@@ -176,6 +176,12 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string)))
 
+(defcustom vc-got-clone-switches (list "-a")
+  "A string or list of strings specifying extra switches passed on for
+`vc-got-clone'."
+  :type '(choice (const :tag "None" nil)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List" :value ("") string)))
 
 (defcustom vc-got-log-keep-separators nil
   "Non-nil to allow keeping the log entry separators in buffers.
@@ -1133,7 +1139,8 @@ true, NAME should create a new branch otherwise it will pop-up a
   "Attempt to clone a REMOTE repository to a DIRECTORY."
   (when rev
     (error "[vc-got] support for `rev' parameter is not implemented"))
-  (vc-got-command nil 'async (list remote directory) "clone" "-a")
+  (apply #'vc-got-command nil 'async (list remote directory) "clone"
+         (ensure-list vc-got-clone-switches))
   directory)
 
 
