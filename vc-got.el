@@ -458,6 +458,23 @@ the specified PATHS."
         (set-process-filter proc #'vc-got--proc-filter))
        (vc-set-async-update (current-buffer)))))
 
+(defun vc-got--diff-hunk-filter (files)
+  "Filters the diff hunks in a buffer to those matching FILES."
+  (save-excursion
+    (goto-char (point-min))
+    (let (delete-previous-blob)
+      (while (re-search-forward "^blob -" nil t)
+        (goto-char (line-beginning-position))
+        (when delete-previous-blob
+          (delete-region (mark) (point)))
+        (set-mark (point))
+        (forward-line 2)
+        (setq delete-previous-blob
+              (let ((hunk-file (buffer-substring-no-properties
+                                (+ (line-beginning-position) 4)
+                                (line-end-position))))
+                (not (member hunk-file files))))))))
+
 (defun vc-got--diff-files (files &optional async)
   "Compute the local modifications to FILES.
 If ASYNC is non-nil, run the diff asynchronously."
@@ -942,9 +959,6 @@ Heavily inspired by `vc-git-log-view-mode'."
                (vc-got--diff-files files async))
               ((and (null rev1)
                     rev2)
-               ;; TODO: this includes the whole diff while to respect
-               ;; the vc semantics we should filter only the diff for
-               ;; files in FILES.
                (if vc-got-diff-show-commit-message
                    (vc-got--log nil 1 rev2 nil nil nil t async)
                  (vc-got--diff-objects rev1 rev2 async)))
@@ -954,7 +968,11 @@ Heavily inspired by `vc-git-log-view-mode'."
               ;;
               ;; TODO 2: if rev2 is nil as well, diff against an empty
               ;; tree (i.e. get the patch from `got log -p rev1')
-              (t (vc-got--diff-objects rev1 rev2 async)))))))
+              (t (vc-got--diff-objects rev1 rev2 async)))
+        ;; if diffing files, filter the full diff output to just hunks
+        ;; matching the FILES.
+        (when (and files (null rev1) (null rev2))
+          (vc-got--diff-hunk-filter files))))))
 
 (defun vc-got-revision-completion-table (_files)
   "Return a completion table for existing revisions.
