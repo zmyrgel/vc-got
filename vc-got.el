@@ -334,7 +334,7 @@ worktree."
         (unless vc-got-log-keep-separators
           (delete-matching-lines
            "^-----------------------------------------------$"))
-          t))))
+        t))))
 
 (defun vc-got-show-log-entry (revision)
   "Search for REVISION in current buffer and move to it."
@@ -456,7 +456,7 @@ the specified PATHS."
                                                 nil))
         ;; Setup a custom process filter that handles \r.
         (set-process-filter proc #'vc-got--proc-filter))
-       (vc-set-async-update (current-buffer)))))
+      (vc-set-async-update (current-buffer)))))
 
 (defun vc-got--diff-hunk-filter (files)
   "Filters the diff hunks in a buffer to those matching FILES."
@@ -709,10 +709,10 @@ populates it with files from a directory polled from user."
 (defun vc-got-checkin (files comment &optional _rev)
   "Commit FILES with COMMENT as commit message."
   (apply #'vc-got-command nil 0 files
-                  "commit" "-m"
-                  (log-edit-extract-headers
-                   '(("Author" . "-A"))
-                   comment)))
+         "commit" "-m"
+         (log-edit-extract-headers
+          '(("Author" . "-A"))
+          comment)))
 
 (defun vc-got-checkin-patch (patch-string comment)
   "Commit PATCH-STRING with COMMENT to repository."
