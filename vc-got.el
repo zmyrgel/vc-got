@@ -834,7 +834,7 @@ It's like `vc-process-filter' but supports \\r inside S."
       (with-temp-buffer
         (vc-got-command t 0 (concat "refs/got/worktree/base-" uuid) "ref" "-d")
         (delete-directory dir t))
-    (error "Directory %s is not a got work tree." from)))
+    (error "Directory %s is not a got work tree." dir)))
 
 (defun vc-got-move-working-tree (from to)
   "Move given got work tree to new location."
@@ -1023,7 +1023,7 @@ Value is returned as floating point fractional number of days."
 
 (defun vc-got-mergebase (rev1 &optional rev2)
   "Find common ancestor of commits REV1 and optional REV2."
-  (vc-go--work-tree-base-commit default-directory))
+  (vc-got--work-tree-base-commit default-directory))
 
 (defun vc-got-last-change (file line)
   "Return the most recent revision of FILE that made a change on LINE."
