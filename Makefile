@@ -1,4 +1,4 @@
-EMACS =		emacs
+EMACS ?=	emacs
 
 .PHONY: all compile lint clean
 
@@ -8,6 +8,9 @@ compile: vc-got.elc
 
 lint:
 	${EMACS} -Q --batch -L . -l targets/lint.el
+
+check:
+	${EMACS} -batch -l ert -l vc-got.el -l vc-got-tests.el -f ert-run-tests-batch-and-exit
 
 clean:
 	rm -f *.elc
