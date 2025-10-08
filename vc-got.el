@@ -297,7 +297,7 @@ The output will be placed in the current buffer."
 
 (defun vc-got--log (&optional path limit start-commit stop-commit
                               search-pattern reverse include-diff
-                              async)
+                              async shortlog)
   "Execute the log command in the worktree of PATH in the current buffer.
 LIMIT limits the maximum number of commit returned.
 
@@ -342,7 +342,11 @@ worktree."
   (let (process-file-side-effects)
     (goto-char (point-min))
     (when revision
-      (search-forward (format "^commit %s" revision) nil t))))
+      (let ((fmt (if (not (memq vc-log-view-type '(long log-search with-diff)))
+                     "^[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}"
+                   "^commit"))))
+      (search-forward
+       (concat fmt "\\s" (regex-quote revision)) nil t))))
 
 (defun vc-got-comment-history (file)
   "Show all log entries for given FILE."
@@ -865,7 +869,13 @@ It's like `vc-process-filter' but supports \\r inside S."
 
 ;; History functions
 
-(defun vc-got-print-log (files buffer &optional _shortlog start-revision limit)
+(defun vc-got-expanded-log-entry (revision)
+  "Return full log entry for REVISION with diff stat."
+  (with-temp-buffer
+    (vc-got--log nil 1 revision nil nil nil t)
+    (buffer-string)))
+
+(defun vc-got-print-log (files buffer &optional shortlog start-revision limit)
   "Insert the revision log for FILES into BUFFER.
 LIMIT limits the number of commits, optionally starting at
 START-REVISION."
@@ -874,9 +884,11 @@ START-REVISION."
     (let ((worktree-path (vc-got-root default-directory))
           (inhibit-read-only t))
       (dolist (file files)
-        (vc-got--log (file-relative-name file worktree-path)
-                     limit
-                     start-revision)))))
+        (vc-got--log
+         (file-relative-name file worktree-path)
+         limit
+         start-revision
+         nil nil nil nil nil shortlog)))))
 
 (defun vc-got-log-outgoing (buffer remote-location)
   "Fill BUFFER with the diff between the local worktree branch and REMOTE-LOCATION."
@@ -932,20 +944,31 @@ Heavily inspired by `vc-git-log-view-mode'."
   (require 'add-log)
   (setq-local log-view-file-re regexp-unmatchable)
   (setq-local log-view-per-file-logs nil)
-  (setq-local log-view-message-re "^commit +\\([0-9a-z]+\\)")
+  (setq-local log-view-message-re
+              (if (not (memq vc-log-view-type '(long log-search with-diff)))
+                  "\\(?2:^[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\) \\(?1:[0-9a-z]+\\)"
+                "^commit \\([0-9a-z]+\\)"))
+  (when (memq vc-log-view-type '(short log-outgoing log-incoming)) ;; mergebase?
+    (setq truncate-lines t)
+    (setq-local log-view-expanded-log-entry-function
+                'vc-got-expanded-log-entry))
   (setq-local log-view-font-lock-keywords
-              (append
-               `((,log-view-message-re (1 'change-log-acknowledgment)))
-               ;; Handle the case:
-               ;; user: foo@bar
-               '(("^from: \\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
-                  (1 'change-log-email))
+              (if (not (memq vc-log-view-type '(long log-search with-diff)))
+                  `("\\(?2:^[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\) \\(?1:[0-9a-z]+\\)"
+                    ((1 'log-view-message)
+                     (2 change-log-date)))
+                (append
+                 `((,log-view-message-re (1 'change-log-acknowledgment)))
                  ;; Handle the case:
-                 ;; user: FirstName LastName <foo@bar>
-                 ("^from: \\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
-                  (1 'change-log-name)
-                  (2 'change-log-email))
-                 ("^date: \\(.+\\)" (1 'change-log-date))))))
+                 ;; user: foo@bar
+                 '(("^from: \\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
+                    (1 'change-log-email))
+                   ;; Handle the case:
+                   ;; user: FirstName LastName <foo@bar>
+                   ("^from: \\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
+                    (1 'change-log-name)
+                    (2 'change-log-email))
+                   ("^date: \\(.+\\)" (1 'change-log-date)))))))
 
 ;; TODO: return 0 or 1
 (defun vc-got-diff (files &optional rev1 rev2 buffer async)
