@@ -527,11 +527,12 @@ files on disk."
           (push (match-string 2) table))
         table))))
 
-(defun vc-got--branch (name)
-  "Try to create and switch to the branch called NAME."
+(defun vc-got--branch (name &optional commit)
+  "Try to create and switch to the branch called NAME.
+If optional COMMIT is given, start the new branch from it."
   (let (process-file-side-effects)
     (vc-got-with-worktree default-directory
-      (vc-got-command nil 0 nil "branch" name))))
+      (vc-got-command nil 0 nil "branch" "-c" (or commit ":head") name))))
 
 
 ;; Backend properties
@@ -1103,7 +1104,9 @@ true, NAME should create a new branch otherwise it will pop-up a
   ;; TODO: vc recommends to ensure that all of the files are in a clean
   ;; state, but is it useful?
   (if branchp
-      (vc-got--branch name)
+      (let ((branch-start (completing-read "Create new branch from ref: "
+                                           (vc-got--ref))))
+        (vc-got--branch name branch-start))
     (let ((buf (get-buffer-create "*vc-got tag*")))
       (with-current-buffer buf
         (erase-buffer)
