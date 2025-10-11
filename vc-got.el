@@ -920,12 +920,12 @@ up-to-date information possible is required."
                vc-got--last-pack-fetch)))
   (ignore-errors            ; in order to return nil if no such branch
     (with-temp-buffer
-      (let* ((remote (or (not (string-empty-p upstream-location))
-                         (concat "origin/" (vc-got--current-branch))))
-             (merge-base (vc-got-mergebase (vc-got--current-branch) remote)))
-        (vc-got--log nil 1 remote)
-        (when-let* ((commit-line (re-search-forward vc-got--commit-re nil t)))
-          (match-string-no-properties 1))))))
+      (let ((start-commit (if (string-empty-p upstream-location)
+                              (concat "origin/" (vc-got--current-branch))
+                            upstream-location)))
+      (vc-got--log nil 1 start-commit)
+      (when-let* ((commit-line (re-search-forward vc-got--commit-re nil t)))
+        (match-string-no-properties 1))))))
 
 (defun vc-got-log-search (buffer pattern)
   "Search commits for PATTERN and write the results found in BUFFER."
