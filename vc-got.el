@@ -1057,16 +1057,17 @@ Value is returned as floating point fractional number of days."
     (when (looking-at vc-got--annotate-re)
       (match-string-no-properties 1))))
 
-(defun vc-got--work-tree-base-commit (file)
-  "Return the work tree base commit."
+(defun vc-got-mergebase (rev1 rev2)
+  "Returns the youngest common ancestor of commits REV1 and optional REV2."
+  ;; NOTE: 2025-10-10: `got' does not externally provide the youngest
+  ;; common ancestor info so use git merge-base to look for it.
+  ;; See: got_commit_graph_find_youngest_common_ancestor
   (with-temp-buffer
-    (when-let* ((root-dir (vc-got-root file)))
-      (insert-file-contents (expand-file-name root-dir ".got/base-commit"))
-      (string-trim (buffer-string)))))
-
-(defun vc-got-mergebase (rev1 &optional rev2)
-  "Find common ancestor of commits REV1 and optional REV2."
-  (vc-got--work-tree-base-commit default-directory))
+    (let* ((default-directory (vc-got--repo-root))
+           (code (call-process "git" nil t nil "merge-base" local-branch origin)))
+      ;; TODO:: this hides the error on why command fails
+      (when (zerop code)
+        (buffer-string)))))
 
 (defun vc-got-last-change (file line)
   "Return the most recent revision of FILE that made a change on LINE."
