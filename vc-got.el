@@ -879,7 +879,7 @@ It's like `vc-process-filter' but supports \\r inside S."
 (defun vc-got-print-log (files buffer &optional shortlog start-revision limit)
   "Insert the revision log for FILES into BUFFER.
 LIMIT limits the number of commits, optionally starting at
-START-REVISION."
+START-REVISION. If LIMIT is a string, stop processing at given revision."
   (vc-setup-buffer buffer)
   (with-current-buffer buffer
     (let ((worktree-path (vc-got-root default-directory))
@@ -887,9 +887,11 @@ START-REVISION."
       (dolist (file files)
         (vc-got--log
          (file-relative-name file worktree-path)
-         limit
-         start-revision
-         nil nil nil nil nil shortlog)))))
+         (unless (stringp limit) limit)
+         (unless (string-empty-p start-revision)
+           start-revision)
+         (when (stringp limit) limit)
+         nil nil nil nil shortlog)))))
 
 (defvar vc-got--last-pack-fetch (make-hash-table :test 'equal)
   "hash table of (remote . seconds) when repository fetch was triggered by vc.
