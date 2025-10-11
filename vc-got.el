@@ -905,10 +905,6 @@ The backend may rely on cached information from a previous fetch from
 UPSTREAM-LOCATION unless REFRESH is non-nil, which means that the most
 up-to-date information possible is required."
   (let ((repository (vc-got--repo-root)))
-    (message "r:%s; h:%s; d:%s " refresh
-             (not (gethash repository vc-got--last-pack-fetch))
-             (- (string-to-number (format-time-string "%s" nil))
-                    (gethash repository vc-got--last-pack-fetch)))
     (when (or refresh
               ;; no fetches in this emacs session
               (not (gethash repository vc-got--last-pack-fetch))
