@@ -891,47 +891,43 @@ START-REVISION."
          start-revision
          nil nil nil nil nil shortlog)))))
 
-(defun vc-got-log-outgoing (buffer remote-location)
-  "Fill BUFFER with the diff between the local worktree branch and REMOTE-LOCATION."
-  (vc-setup-buffer buffer)
-  (let ((rl (vc-got-next-revision
-             nil
-             (if (or (not remote-location) (string-empty-p remote-location))
-                 (concat "origin/" (vc-got--current-branch))
-               remote-location)))
-        (inhibit-read-only t))
-    (with-current-buffer buffer
-      (vc-got--log nil nil nil rl))))
+(defvar vc-got--last-pack-fetch (make-hash-table :test 'equal)
+  "hash table of (remote . seconds) when repository fetch was triggered by vc.
+Used for caching the fetch results.")
 
-(defun vc-got-log-incoming (buffer remote-location)
-  "Fill BUFFER with the incoming diff from REMOTE-LOCATION.
-That is, the diff between REMOTE-LOCATION and the local repository."
-  (vc-setup-buffer buffer)
-  (let ((rl (if (or (not remote-location) (string-empty-p remote-location))
-                (concat "origin/" (vc-got--current-branch))
-              remote-location))
-        (inhibit-read-only t))
-    (with-current-buffer buffer
-      (vc-got--log nil nil (vc-got--current-branch) rl))))
+(defvar vc-got--last-fetch-timeout 3600
+  "How many seconds to wait between `got fetch' runs.")
 
 (defun vc-got-incoming-revision (upstream-location &optional refresh)
-  "Fetch and return revision at the head of the branch at UPSTREAM-LOCATION.
-If there is no such branch there, return nil. (Should signal an error,
-not return nil, in the case that fetching data fails.) The backend may rely on cached
-information from a previous fetch from UPSTREAM-LOCATION unless REFRESH
-is non-nil, which means that the most up-to-date information possible is
-required."
-  ;; TODO: skip caching for until clear when we can use it
-  (when (or refresh t)
-    (apply #'vc-got-command nil 0 nil "fetch"
-           (ensure-list vc-got-incoming-revision-switches)))
+  "Fetch and return revision at the head of the branch at
+UPSTREAM-LOCATION. If there is no such branch there, return nil.
+The backend may rely on cached information from a previous fetch from
+UPSTREAM-LOCATION unless REFRESH is non-nil, which means that the most
+up-to-date information possible is required."
+  (let ((repository (vc-got--repo-root)))
+    (message "r:%s; h:%s; d:%s " refresh
+             (not (gethash repository vc-got--last-pack-fetch))
+             (- (string-to-number (format-time-string "%s" nil))
+                    (gethash repository vc-got--last-pack-fetch)))
+    (when (or refresh
+              ;; no fetches in this emacs session
+              (not (gethash repository vc-got--last-pack-fetch))
+              ;; last fetch was over the timeout ago
+              (> (- (string-to-number (format-time-string "%s" nil))
+                    (gethash repository vc-got--last-pack-fetch))
+                 vc-got--last-fetch-timeout))
+      (apply #'vc-got-command nil 0 nil "fetch"
+             (ensure-list vc-got-incoming-revision-switches))
+      (puthash repository (string-to-number (format-time-string "%s" nil))
+               vc-got--last-pack-fetch)))
   (ignore-errors            ; in order to return nil if no such branch
     (with-temp-buffer
-      (vc-got-command t 0 nil "log" "-s" "-l" 1 "-c" ":head")
-      (cadr (split-string
-             (buffer-substring-no-properties
-              (line-beginning-position)
-              (line-end-position)))))))
+      (let* ((remote (or (not (string-empty-p upstream-location))
+                         (concat "origin/" (vc-got--current-branch))))
+             (merge-base (vc-got-mergebase (vc-got--current-branch) remote)))
+        (vc-got--log nil 1 remote)
+        (when-let* ((commit-line (re-search-forward vc-got--commit-re nil t)))
+          (match-string-no-properties 1))))))
 
 (defun vc-got-log-search (buffer pattern)
   "Search commits for PATTERN and write the results found in BUFFER."
