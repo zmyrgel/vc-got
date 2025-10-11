@@ -345,7 +345,7 @@ worktree."
       (let ((fmt (if (not (memq vc-log-view-type '(long log-search with-diff)))
                      "^[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}"
                    "^commit"))))
-      (search-forward
+      (re-search-forward
        (concat fmt "\\s" (regex-quote revision)) nil t))))
 
 (defun vc-got-comment-history (file)
