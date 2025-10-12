@@ -483,7 +483,7 @@ ROOT is the root of the repo."
       (when-let* ((action (completing-read "Rebase in progress, what to do? "
                                            '(abort continue force list clean))))
         (vc-got--rebase action))
-    (when-let* ((branch (vc-got--prompt-branch "Which branch to rebase to: ")))
+    (when-let* ((branch (vc-got--prompt-branch "Rebase with branch: ")))
       (vc-got--rebase 'start branch))))
 
 (defun vc-got--list-branches ()
@@ -836,11 +836,39 @@ The REV defaults to latest revision."
   "Mass-revert of FILES."
   (apply #'vc-got--revert files))
 
+(defun vc-got--merge (action &optional branch)
+  "Internal command for merging."
+  (let ((args (cond ((eq action 'start)
+                     (list branch))
+                    ((eq action 'abort)
+                     '("-a"))
+                    ((eq action 'continue)
+                     '("-c"))
+                    ((eq action 'force)
+                     '("-cC"))
+                    (t (error "unknown action: ~s" action)))))
+    (apply #'vc-got-command nil 0 nil "merge" args)))
+
 (defun vc-got-merge-branch ()
   "Prompt for a branch and integrate it into the current one."
+  (if (memq 'merge (vc-got--cmds-in-progress))
+      (when-let* ((action (completing-read "Merge in progress, what to do? "
+                                           '(abort continue force))))
+        (vc-got--merge action))
+    (when-let* ((branch (vc-got--prompt-branch "Merge with branch: ")))
+      (vc-got--merge 'start branch))))
+
+(defun vc-got-integrate ()
+  "Prompt for a branch and integrate it into the current one."
+  (interactive)
   ;; XXX: be smart and try to "got rebase" if "got integrate" fails?
-  (when-let* ((branch (vc-got--prompt-branch "Merge from branch: ")))
-    (vc-got-command nil 0 nil "integrate" branch)))
+  (when-let* ((branch (vc-got--prompt-branch "Integrate with branch: ")))
+    ;; we could add
+    ;; handle state changes: continue, force, abort
+    ;; `vc-got-integrate' as separate command.
+    (vc-got-command nil 0 nil "integrate" branch)
+    ;; TODO: add customization to delete branch after integration
+    ))
 
 (defun vc-got--proc-filter (proc s)
   "Custom output filter for async process PROC.
