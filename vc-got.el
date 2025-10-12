@@ -312,11 +312,11 @@ The output will be placed in the current buffer."
             cmds)
         (when (file-expand-wildcards (expand-file-name
                                       (concat "refs/got/worktree/backout-" uuid "-*")
-                                              (vc-got--repo-root)))
+                                      repo-dir))
           (push 'backout cmds))
         (when (file-expand-wildcards (expand-file-name
                                       (concat "refs/got/worktree/cherrypick-" uuid "-*")
-                                              (vc-got--repo-root)))
+                                      repo-dir))
           (push 'cherrypick cmds))
         (when (save-excursion
                 (re-search-forward "Work tree is merging" nil t))
@@ -375,9 +375,9 @@ worktree."
     (when revision
       (let ((fmt (if (not (memq vc-log-view-type '(long log-search with-diff)))
                      "^[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}"
-                   "^commit"))))
-      (re-search-forward
-       (concat fmt "\\s" (regex-quote revision)) nil t))))
+                   "^commit")))
+        (re-search-forward
+         (concat fmt "\\s" revision) nil t)))))
 
 (defun vc-got-comment-history (file)
   "Show all log entries for given FILE."
@@ -481,7 +481,7 @@ argument so that must also be given."
                      '("-l"))
                     ((eq action 'clean)
                      '("-X"))
-                    (t (error "Unknown action: ~s" action)))))
+                    (t (error "Unknown action: %s" action)))))
     (apply #'vc-got-command nil 0 nil "rebase" args)))
 
 (defun vc-got-rebase ()
@@ -856,7 +856,7 @@ merge.  Some actions take BRANCH argument."
                      '("-c"))
                     ((eq action 'force)
                      '("-cC"))
-                    (t (error "Unknown action: ~s" action)))))
+                    (t (error "Unknown action: %s" action)))))
     (apply #'vc-got-command nil 0 nil "merge" args)))
 
 (defun vc-got-merge-branch ()
