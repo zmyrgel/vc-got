@@ -470,6 +470,11 @@ ROOT is the root of the repo."
           (push (cons (match-string 1) (match-string 2)) alist))
         alist))))
 
+(defun vc-got--prompt-branch (message)
+  "Prompt user for a branch."
+  ;; TODO: sort branches
+  (completing-read message (mapcar #'car (vc-got--list-branches))))
+
 (defun vc-got--current-branch ()
   "Return the current branch."
   (let (process-file-side-effects)
@@ -806,8 +811,7 @@ The REV defaults to latest revision."
 (defun vc-got-merge-branch ()
   "Prompt for a branch and integrate it into the current one."
   ;; XXX: be smart and try to "got rebase" if "got integrate" fails?
-  (when-let* ((branch (completing-read "Merge from branch: "
-                                       (mapcar #'car (vc-got--list-branches)))))
+  (when-let* ((branch (vc-got--prompt-branch "Merge from branch: ")))
     (vc-got-command nil 0 nil "integrate" branch)))
 
 (defun vc-got--proc-filter (proc s)
@@ -883,8 +887,12 @@ It's like `vc-process-filter' but supports \\r inside S."
 
 (defun vc-got-add-working-tree (dir)
   "Checkout a new work tree to DIR."
-  (when-let* ((branch (completing-read "Create new work tree from branch: "
-                                       (mapcar #'car (vc-got--list-branches)))))
+  ;; NOTE: `got' tracks the work trees but not their locations, should
+  ;; we re-use the repo .got/refs/got/worktree/ directory to store the
+  ;; checkout directory? This would allow to implement
+  ;; `known-other-working-trees' to list known work trees and jump
+  ;; between them.
+  (when-let* ((branch (vc-got--prompt-branch "Create new work tree from branch: ")))
     (vc-got-command nil 0 dir "checkout" "-b" branch)))
 
 (defun vc-got-delete-working-tree (dir)
