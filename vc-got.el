@@ -422,6 +422,18 @@ ROOT is the root of the repo."
   (vc-got-with-worktree (car files)
     (vc-got-command nil 0 files "revert")))
 
+(defun vc-got--backout (commit)
+  "Execute `got backout' for an COMMIT."
+  (vc-got-command nil 0 commit "backout"))
+
+(defun vc-got-backout ()
+  "Execute `got backout' for an COMMIT."
+  (interactive)
+  (let ((revisions (log-view-get-marked)))
+    (if-let* ((rev (or (car revisions) (log-view-current-tag))))
+        (vc-got--backout rev)
+      (user-error "No revision at point"))))
+
 (defun vc-got--list-branches ()
   "Return an alist of (branch . commit)."
   (let (process-file-side-effects)
@@ -964,6 +976,9 @@ Heavily inspired by `vc-git-log-view-mode'."
                     (1 'change-log-name)
                     (2 'change-log-email))
                    ("^date: \\(.+\\)" (1 'change-log-date)))))))
+
+(define-key vc-got-log-view-mode-map
+            (kbd "!") 'vc-got-backout)
 
 ;; TODO: return 0 or 1
 (defun vc-got-diff (files &optional rev1 rev2 buffer async)
