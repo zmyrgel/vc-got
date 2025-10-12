@@ -295,6 +295,30 @@ The output will be placed in the current buffer."
     (vc-got-with-worktree path
       (vc-got-command t nil path "info"))))
 
+(defun vc-got--cmds-in-progress ()
+  "Return a list of Git commands in progress in this worktree."
+  (when-let* ((uuid (vc-got--work-tree-uuid default-directory)))
+    (with-temp-buffer
+      (vc-got-command t 0 nil "status")
+      (goto-char (point-min))
+      (let ((repo-dir (vc-got--repo-root))
+            cmds)
+        (when (file-expand-wildcards (expand-file-name
+                                      (concat "refs/got/worktree/backout-" uuid "-*")
+                                              (vc-got--repo-root)))
+          (push 'backout cmds))
+        (when (file-expand-wildcards (expand-file-name
+                                      (concat "refs/got/worktree/cherrypick-" uuid "-*")
+                                              (vc-got--repo-root)))
+          (push 'cherrypick cmds))
+        (when (save-excursion
+                (re-search-forward "Work tree is merging" nil t))
+          (push 'merge cmds))
+        (when (save-excursion
+                (re-search-forward "Work tree is rebasing" nil t))
+          (push 'rebase cmds))
+        cmds))))
+
 (defun vc-got--log (&optional path limit start-commit stop-commit
                               search-pattern reverse include-diff
                               async shortlog)
