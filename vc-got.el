@@ -865,7 +865,7 @@ It's like `vc-process-filter' but supports \\r inside S."
       (progn
         (copy-directory from to)
         (delete-directory from))
-    (error "directory %s is missing .got directory" from)))
+    (error "Directory %s is not a got work tree." from)))
 
 
 ;; History functions
