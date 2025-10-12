@@ -458,6 +458,34 @@ ROOT is the root of the repo."
         (vc-got--backout rev)
       (user-error "No revision at point"))))
 
+(defun vc-got--rebase (action &optional branch)
+  "Rebase utility"
+  (let ((args (cond ((eq action 'start)
+                     (list branch))
+                    ((eq action 'abort)
+                     '("-a"))
+                    ((eq action 'continue)
+                     '("-c"))
+                    ((eq action 'force)
+                     '("-cC"))
+                    ((eq action 'list)
+                     '("-l"))
+                    ((eq action 'clean)
+                     '("-X"))
+                    (t (error "unknown action: ~s" action)))))
+    (apply #'vc-got-command nil 0 nil "rebase" args)))
+
+(defun vc-got-rebase ()
+  "Execute `got rebase'."
+  (interactive)
+  ;; TODO: should this also run `got up -b <branch>'?
+  (if (memq 'rebase (vc-got--cmds-in-progress))
+      (when-let* ((action (completing-read "Rebase in progress, what to do? "
+                                           '(abort continue force list clean))))
+        (vc-got--rebase action))
+    (when-let* ((branch (vc-got--prompt-branch "Which branch to rebase to: ")))
+      (vc-got--rebase 'start branch))))
+
 (defun vc-got--list-branches ()
   "Return an alist of (branch . commit)."
   (let (process-file-side-effects)
