@@ -96,7 +96,7 @@
 ;; - annotate-extract-revision-at-line  DONE
 ;; - region-history                     NOT IMPLEMENTED
 ;; - region-history-mode                NOT IMPLEMENTED
-;; - mergebase                          DONE? Returns ./.got/base-commit
+;; - mergebase                          DONE using the 'git merge-base'
 ;; - last-change                        DONE
 ;;
 ;; TAG SYSTEM
