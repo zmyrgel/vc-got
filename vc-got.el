@@ -136,6 +136,13 @@
 ;; we should 1) investigate if also other backends do something like
 ;; this (or if there is a better way) and 2) try to do the same.
 
+;; TODO: use `git' commands for things not yet available in `got', like
+;; HTTPS push operations
+
+;; TODO: add `vc-got-cherrypick' command
+
+;; TODO: improve staging of commits
+
 (eval-when-compile
   (require 'subr-x))
 
@@ -918,6 +925,7 @@ It's like `vc-process-filter' but supports \\r inside S."
 ;; TODO: this could be expanded.  After a pull the worktree needs to
 ;; be updated, either with a ``got update -b branch-name'' or ``got
 ;; update -b remote/branchname'' plus a rebase.
+;; TODO: can this handle prefix argument? pull does fetch, C-u pull does update?
 (defun vc-got-pull (prompt)
   "Execute a fetch prompting for the full command if PROMPT is not nil."
   (vc-got--push-pull vc-got-program
@@ -1158,7 +1166,8 @@ Value is returned as floating point fractional number of days."
   "Returns the youngest common ancestor of commits REV1 and optional REV2."
   ;; NOTE: 2025-10-10: `got' does not externally provide the youngest
   ;; common ancestor info so use git merge-base to look for it.
-  ;; See: got_commit_graph_find_youngest_common_ancestor
+  ;; `got' sources have implementation, look for:
+  ;; got_commit_graph_find_youngest_common_ancestor
   (with-temp-buffer
     (let* ((rev2 (or rev2 "HEAD"))
            (default-directory (vc-got--repo-root))
@@ -1206,7 +1215,9 @@ true, NAME should create a new branch otherwise it will pop-up a
   ;; TODO: vc recommends to ensure that all of the files are in a clean
   ;; state, but is it useful?
   (if branchp
+      ;; TODO: sort refs like completions-sort?
       (let ((branch-start (completing-read "Create new branch from ref: "
+                                           ;; Ref or branch?
                                            (vc-got--ref))))
         (vc-got--branch name branch-start))
     (let ((buf (get-buffer-create "*vc-got tag*")))
@@ -1235,10 +1246,14 @@ true, NAME should create a new branch otherwise it will pop-up a
   (expand-file-name ".gitignore"
                     (vc-got-root file)))
 
+;; NOTE: Would these two functions benefit from caching? We could
+;; provide a cache for (vc-got--log file nil rev) results, then later
+;; log calls could use -x to stop iterating past revisions over and over.
+;; Does histedit/rebase break this?
 (defun vc-got-previous-revision (file rev)
   "Return the revision number that precedes REV for FILE or nil."
   (with-temp-buffer
-    ;; NOTE: 2025-10-04: got currently does not allow iterating log
+    ;; NOTE: 2025-10-04: `got' currently does not allow iterating log
     ;; entries to paths efficiently, so we need to query all revisions
     ;; of a file and look for matches ourselves.
     (vc-got--log file nil rev)
