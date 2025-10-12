@@ -337,8 +337,8 @@ STOP-COMMIT: stop traversing history at the specified commit.
 SEARCH-PATTERN: limit to log messages matched by the regexp given.
 REVERSE: display the log messages in reverse order.
 INCLUDE-DIFF: display the patch of modifications made in each commit.
-
-If ASYNC is non-nil, run the log asynchronously.
+ASYNC: when non-nil, run the log asynchronously.
+SHORTLOG: when non-nil, return the log in short format.
 
 Return nil if the command failed or if PATH isn't included in any
 worktree."
@@ -466,7 +466,9 @@ ROOT is the root of the repo."
       (user-error "No revision at point"))))
 
 (defun vc-got--rebase (action &optional branch)
-  "Rebase utility"
+  "Utility for running rebase with different arguments.
+The ACTION determines the flags rebase in run with, some take BRANCH
+argument so that must also be given."
   (let ((args (cond ((eq action 'start)
                      (list branch))
                     ((eq action 'abort)
@@ -479,7 +481,7 @@ ROOT is the root of the repo."
                      '("-l"))
                     ((eq action 'clean)
                      '("-X"))
-                    (t (error "unknown action: ~s" action)))))
+                    (t (error "Unknown action: ~s" action)))))
     (apply #'vc-got-command nil 0 nil "rebase" args)))
 
 (defun vc-got-rebase ()
@@ -506,7 +508,7 @@ ROOT is the root of the repo."
         alist))))
 
 (defun vc-got--prompt-branch (message)
-  "Prompt user for a branch."
+  "Prompt user for a branch.  The prompt displays MESSAGE for the user."
   ;; TODO: sort branches
   (completing-read message (mapcar #'car (vc-got--list-branches))))
 
@@ -844,7 +846,8 @@ The REV defaults to latest revision."
   (apply #'vc-got--revert files))
 
 (defun vc-got--merge (action &optional branch)
-  "Internal command for merging."
+  "Internal command for merging.  The ACTION determine the flags passed to
+merge.  Some actions take BRANCH argument."
   (let ((args (cond ((eq action 'start)
                      (list branch))
                     ((eq action 'abort)
@@ -853,7 +856,7 @@ The REV defaults to latest revision."
                      '("-c"))
                     ((eq action 'force)
                      '("-cC"))
-                    (t (error "unknown action: ~s" action)))))
+                    (t (error "Unknown action: ~s" action)))))
     (apply #'vc-got-command nil 0 nil "merge" args)))
 
 (defun vc-got-merge-branch ()
@@ -939,11 +942,12 @@ It's like `vc-process-filter' but supports \\r inside S."
                      prompt))
 
 (defun vc-got-get-change-comment (_files rev)
-  "Return the change comments given REV. The files argument is ignored."
+  "Return the change comments given REV.  The files argument is ignored."
   (vc-got--log nil 1 rev))
 
 (defun vc-got--work-tree-uuid (&optional file)
-  "Return the work tree UUID."
+  "Returns the work tree UUID.  Uses the `default-directory' or given FILE
+to determine the work tree."
   (with-temp-buffer
     (when-let* ((root-dir (vc-got-root (or file default-directory))))
       (insert-file-contents (expand-file-name ".got/uuid" root-dir))
@@ -960,20 +964,20 @@ It's like `vc-process-filter' but supports \\r inside S."
     (vc-got-command nil 0 dir "checkout" "-b" branch)))
 
 (defun vc-got-delete-working-tree (dir)
-  "Delete a work tree."
+  "Delete a work tree in directory DIR."
   (if-let* ((uuid (vc-got--work-tree-uuid dir)))
       (with-temp-buffer
         (vc-got-command t 0 (concat "refs/got/worktree/base-" uuid) "ref" "-d")
         (delete-directory dir t))
-    (error "Directory %s is not a got work tree." dir)))
+    (error "Directory %s is not a got work tree" dir)))
 
 (defun vc-got-move-working-tree (from to)
-  "Move given got work tree to new location."
+  "Move `got' work tree FROM TO a new location."
   (if (file-exists-p (expand-file-name ".got" from))
       (progn
         (copy-directory from to)
         (delete-directory from))
-    (error "Directory %s is not a got work tree." from)))
+    (error "Directory %s is not a got work tree" from)))
 
 
 ;; History functions
@@ -987,7 +991,8 @@ It's like `vc-process-filter' but supports \\r inside S."
 (defun vc-got-print-log (files buffer &optional shortlog start-revision limit)
   "Insert the revision log for FILES into BUFFER.
 LIMIT limits the number of commits, optionally starting at
-START-REVISION. If LIMIT is a string, stop processing at given revision."
+START-REVISION.  If LIMIT is a string, stop processing at given revision.
+When SHORTLOG is non-nil, return the output in short format."
   (vc-setup-buffer buffer)
   (with-current-buffer buffer
     (let ((worktree-path (vc-got-root default-directory))
@@ -1002,18 +1007,18 @@ START-REVISION. If LIMIT is a string, stop processing at given revision."
          nil nil nil nil shortlog)))))
 
 (defvar vc-got--last-pack-fetch (make-hash-table :test 'equal)
-  "hash table of (remote . seconds) when repository fetch was triggered by vc.
+  "Hash table of (remote . seconds) when repository fetch was triggered by VC.
 Used for caching the fetch results.")
 
 (defvar vc-got--last-fetch-timeout 3600
   "How many seconds to wait between `got fetch' runs.")
 
 (defun vc-got-incoming-revision (upstream-location &optional refresh)
-  "Fetch and return revision at the head of the branch at
-UPSTREAM-LOCATION. If there is no such branch there, return nil.
-The backend may rely on cached information from a previous fetch from
-UPSTREAM-LOCATION unless REFRESH is non-nil, which means that the most
-up-to-date information possible is required."
+  "Returns revision at the head of the branch at UPSTREAM-LOCATION.  If
+there is no such branch there, return nil.  The backend may rely on
+cached information from a previous fetch from UPSTREAM-LOCATION unless
+REFRESH is non-nil, which means that the most up-to-date information
+possible is required."
   (let ((repository (vc-got--repo-root)))
     (when (or refresh
               ;; no fetches in this emacs session
@@ -1328,7 +1333,7 @@ true, NAME should create a new branch otherwise it will pop-up a
           found)))))
 
 (defun vc-got-prepare-patch (rev)
-  "Prepare patch for transmission."
+  "Prepare patch for transmission from revision REV."
   (with-current-buffer (generate-new-buffer " *vc-got-prepare-patch*")
     (let (process-file-side-effects)
       (vc-got-command t 0 nil "log" "-p" "-x" rev "-c" rev)
@@ -1343,7 +1348,8 @@ true, NAME should create a new branch otherwise it will pop-up a
               :body-start (point))))))
 
 (defun vc-got-clone (remote directory rev)
-  "Attempt to clone a REMOTE repository to a DIRECTORY."
+  "Clones a REMOTE repository to a DIRECTORY.  This command does
+not support the REV argument."
   (when rev
     (error "[vc-got] support for `rev' parameter is not implemented"))
   (apply #'vc-got-command nil 'async (list remote directory) "clone"
