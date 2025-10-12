@@ -949,9 +949,9 @@ Heavily inspired by `vc-git-log-view-mode'."
                 'vc-got-expanded-log-entry))
   (setq-local log-view-font-lock-keywords
               (if (not (memq vc-log-view-type '(long log-search with-diff)))
-                  `("\\(?2:^[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\) \\(?1:[0-9a-z]+\\)"
-                    ((1 'log-view-message)
-                     (2 change-log-date)))
+                  `((,log-view-message-re
+                     (1 'log-view-message)
+                     (2 'change-log-date)))
                 (append
                  `((,log-view-message-re (1 'change-log-acknowledgment)))
                  ;; Handle the case:
