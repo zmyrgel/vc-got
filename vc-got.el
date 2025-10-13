@@ -943,7 +943,16 @@ It's like `vc-process-filter' but supports \\r inside S."
 
 (defun vc-got-get-change-comment (_files rev)
   "Return the change comments given REV.  The files argument is ignored."
-  (vc-got--log nil 1 rev))
+  (with-temp-buffer
+    (vc-got--log nil 1 rev)
+    (goto-char (point-min))
+    (forward-line 4)
+    (save-excursion
+      (while (not (eobp))
+        (delete-char 1)
+        (forward-line))
+      (delete-blank-lines))
+    (buffer-substring-no-properties (point) (point-max))))
 
 (defun vc-got--work-tree-uuid (&optional file)
   "Returns the work tree UUID.  Uses the `default-directory' or given FILE
