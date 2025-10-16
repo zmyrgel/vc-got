@@ -110,7 +110,7 @@
 ;; - ignore-completion-table            NOT NEEDED, the default action is good
 ;; - find-ignore-file                   DONE
 ;; - previous-revision                  DONE
-;; - file-name-changes                  NOT IMPLEMENTED
+;; - file-name-changes                  DONE, though does not track renames
 ;; - next-revision                      DONE
 ;; - log-edit-mode                      NOT IMPLEMENTED
 ;; - check-headers                      NOT NEEDED, `got' does not use headers
@@ -1277,6 +1277,20 @@ true, NAME should create a new branch otherwise it will pop-up a
                                (re-search-forward vc-got--commit-re nil t)
                                (re-search-forward vc-got--commit-re nil t))))
       (match-string-no-properties 1))))
+
+(defun vc-got-file-name-changes (rev)
+  "Return a list of file name changes in given REV."
+  ;; NOTE: 2025-10-16 `got' does not track file renames yet.
+  (with-temp-buffer
+    (vc-got--log nil 1 rev nil nil nil nil nil nil t)
+    (goto-char (point-min))
+    (let (changes)
+      (while (re-search-forward " \\(A\\|D\\)  \\(.+\\)" nil t)
+        (push (if (string-equal (match-string 1) "A")
+                  (cons nil (match-string 2))
+                (cons (match-string 2) nil))
+              changes))
+      changes)))
 
 (defun vc-got-next-revision (file rev)
   "Return the revision number that follows REV for FILE or nil."
