@@ -70,8 +70,6 @@
 ;; - steal-lock                         NOT NEEDED, `got' is not using locks
 ;; - get-change-comment                 DONE
 ;; - modify-change-comment              NOT IMPLEMENTED
-;;      can be implemented via histedit, if I understood correctly
-;;      what it is supposed to do.
 ;; - mark-resolved                      NOT NEEDED
 ;; - find-admin-dir                     NOT NEEDED
 ;; - add-working-tree                   DONE
@@ -123,6 +121,7 @@
 ;; - repository-url                     DONE
 ;; - prepare-patch                      DONE
 ;; - clone                              DONE
+;; - cherry-pick-comment                DONE
 
 ;;; Code:
 
@@ -955,6 +954,32 @@ It's like `vc-process-filter' but supports \\r inside S."
         (forward-line))
       (delete-blank-lines))
     (buffer-substring-no-properties (point) (point-max))))
+
+(defun vc-got-cherry-pick-comment (_files rev reverse)
+  "Generate proper revision comment for cherry picked commit from REV.
+If the REVERSE is non-nil, generate message for reversing cherrypick.
+The _FILES argument is ignored."
+  (let (comment)
+    (with-temp-buffer
+      (vc-got--log nil 1 rev)
+      (goto-char (point-min))
+      (save-excursion
+        ;; get full commit hash
+        (when (re-search-forward vc-got--commit-re nil t)
+          (setq rev (match-string-no-properties 1))))
+      (forward-line 4)
+      ;; remove indent and parse the comment string
+      (save-excursion
+        (while (not (eobp))
+          (delete-char 1)
+          (forward-line))
+        (delete-blank-lines))
+      (setq comment (buffer-substring-no-properties (point) (point-max))))
+    (if reverse
+        (format "Summary: Revert \"%s\"\n\nThis reverts commit %s.\n"
+                (car (split-string comment "\n")) rev)
+      (format "Summary: %s\n(cherry picked from commit %s)\n"
+              comment rev))))
 
 (defun vc-got--work-tree-uuid (&optional file)
   "Returns the work tree UUID.  Uses the `default-directory' or given FILE
