@@ -454,17 +454,37 @@ ROOT is the root of the repo."
   (vc-got-with-worktree (car files)
     (vc-got-command nil 0 files "revert")))
 
-(defun vc-got--backout (commit)
-  "Execute `got backout' for an COMMIT."
-  (vc-got-command nil 0 commit "backout"))
+(defun vc-got--backout (list clean &optional commit)
+  "Execute `got backout' command.  If LIST is non-nil, show the ongoing
+backouts.  If the CLEAN is non-nil, clean prior backouts.  Optional COMMIT
+limits operations to given COMMIT."
+  (if (and list clean)
+      (user-error "Cannot list and clean backouts in same operation")
+    (with-temp-buffer
+      (apply #'vc-got-command t 0 commit "backout"
+             (list (and list "-l")
+                   (and clean "-X")))
+      (buffer-string))))
 
 (defun vc-got-backout ()
-  "Execute `got backout' for an COMMIT."
+  "Execute `got backout'.  If called in log-view-mode to log entry at point
+is used.
+Otherwise the user is polled for the revision."
   (interactive)
-  (let ((revisions (log-view-get-marked)))
-    (if-let* ((rev (or (car revisions) (log-view-current-tag))))
-        (vc-got--backout rev)
-      (user-error "No revision at point"))))
+  (if (memq 'backout (vc-got--cmds-in-progress))
+      (when (y-or-n-p "Prior backout in progress, clean backouts?")
+        (vc-got--backout nil t))
+    (let ((revisions (log-view-get-marked)))
+      (if-let* ((rev (or (car revisions) (log-view-current-tag))))
+          (prog1
+              (vc-got--backout nil nil rev)
+            (message "Backed out commit %s" rev))
+        (when-let* ((rev-line (completing-read "Which revision: "
+                                               (mapcar (lambda (rows)
+                                                         (string-join rows " "))
+                                                       (vc-got--list-revisions)))))
+          (vc-got--backout nil nil (cadr (string-split rev-line " ")))
+          (message "Backed out commit %s" rev))))))
 
 (defun vc-got--rebase (action &optional branch)
   "Utility for running rebase with different arguments.
