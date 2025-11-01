@@ -863,14 +863,19 @@ populates it with files from a directory polled from user."
 
 (defun vc-got-checkout (file &optional rev)
   "Checkout revision REV of FILE.
-The REV defaults to latest revision."
+The REV defaults to latest revision. If REV is non-nil, that is the
+revision to check out (default is the working revision). If REV is t,
+that means to check out the head of the current branch; if it is the
+empty string, check out the head of the trunk."
   (with-temp-buffer
-    ;; NOTE: intentionally does not pass vc-checkout-switches as `got'
-    ;; does not support extra flags.
-    (let ((rev-arg (cond ((and (stringp rev) (string-empty-p rev)) ":head") ;; head of trunk
-                         ((stringp rev) rev) ;; the revision itself
-                         (rev ":base")))) ;; head of branch
-      (vc-got-command t 0 file "cat" "-P" "-c" rev-arg)
+    (let ((rev-arg (cond ((and (stringp rev) (string-empty-p rev)) ":head")
+                         ((stringp rev) rev)
+                         (rev ":base"))))
+      (apply #'vc-got-command t 0 file
+             (nconc (list "cat" "-P")
+                    (when rev-arg
+                      (list "-c" rev-arg))
+                    (ensure-list vc-checkout-switches)))
       (setq buffer-file-name file)
       (basic-save-buffer))))
 
