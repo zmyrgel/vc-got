@@ -6,8 +6,8 @@
 ;;         Timo Myyrä <timo.myyra@bittivirhe.fi>
 ;; URL: https://projects.omarpolo.com/vc-got.html
 ;; Keywords: vc tools
-;; Version: 1.2
-;; Package-Requires: ((emacs "25.1"))
+;; Version: 1.3
+;; Package-Requires: ((emacs "26.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
