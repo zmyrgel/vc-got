@@ -273,7 +273,7 @@ The difference to `vc-do-command' is that this function always invokes
 (defmacro vc-got-with-worktree (file &rest body)
   "Evaluate BODY in the work tree directory of FILE."
   (declare (debug t) (indent defun))
-  `(when-let* (default-directory (vc-got-root ,file))
+  `(when-let* ((default-directory (vc-got-root ,file)))
      ,@body))
 
 (defun vc-got--repo-root ()
