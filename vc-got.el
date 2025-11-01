@@ -804,16 +804,18 @@ Got uses an implicit checkout model for every file."
 (defun vc-got-create-repo ()
   "Creates an empty repository with `got init' in the current directory and
 populates it with files from a directory polled from user."
-  (let ((repo-directory (expand-file-name default-directory))
-        (import-directory (read-directory-name "What directory to import from?"))
-        (message (read-string "Message for import commit: ")))
-    (when (file-exists-p (expand-file-name ".got" repo-directory))
-      (error "Directory already contains a .got directory"))
-    (apply #'vc-got-command nil 0 repo-directory "init"
-           (ensure-list vc-got-create-repo-init-switches))
-    (apply #'vc-got-command t 'async import-directory "import"
-           (append (list "-m" message)
-                   (ensure-list vc-got-create-repo-import-switches)))))
+  (let ((repo-directory (expand-file-name default-directory)))
+    (unless (directory-empty-p repo-directory)
+      (error "The new repository directory must be empty"))
+    (let ((import-directory (expand-file-name
+                             (read-directory-name "What directory to import from: "))))
+      (when (string= repo-directory import-directory)
+        (error "Cannot import the repo directory"))
+      (apply #'vc-got-command nil 0 repo-directory "init"
+             (ensure-list vc-got-create-repo-init-switches))
+      (apply #'vc-got-command t 'async import-directory "import"
+             (append (list "-m" (read-string "Message for import commit: "))
+                     (ensure-list vc-got-create-repo-import-switches))))))
 
 (defun vc-got-register (files &optional _comment)
   "Register FILES, passing `vc-register-switches' to the backend command."
