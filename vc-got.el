@@ -110,7 +110,7 @@
 ;; - previous-revision                  DONE
 ;; - file-name-changes                  DONE, though does not track renames
 ;; - next-revision                      DONE
-;; - log-edit-mode                      NOT IMPLEMENTED
+;; - log-edit-mode                      NOT NEEDED, defaults work ok for now
 ;; - check-headers                      NOT NEEDED, `got' does not use headers
 ;; - delete-file                        DONE
 ;; - rename-file                        DONE
