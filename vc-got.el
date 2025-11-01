@@ -1076,6 +1076,31 @@ When SHORTLOG is non-nil, return the output in short format."
          (when (stringp limit) limit)
          nil nil nil nil shortlog)))))
 
+;; NOTE: obsolete since emacs 31
+(defun vc-got-log-outgoing (buffer remote-location)
+  "Fill BUFFER with the diff between the local worktree branch and REMOTE-LOCATION."
+  (vc-setup-buffer buffer)
+  (let ((rl (vc-got-next-revision
+             nil
+             (if (or (not remote-location) (string-empty-p remote-location))
+                 (concat "origin/" (vc-got--current-branch))
+               remote-location)))
+        (inhibit-read-only t))
+    (with-current-buffer buffer
+      (vc-got--log nil nil nil rl))))
+
+;; NOTE: obsolete since emacs 31
+(defun vc-got-log-incoming (buffer remote-location)
+  "Fill BUFFER with the incoming diff from REMOTE-LOCATION.
+That is, the diff between REMOTE-LOCATION and the local repository."
+  (vc-setup-buffer buffer)
+  (let ((rl (if (or (not remote-location) (string-empty-p remote-location))
+                (concat "origin/" (vc-got--current-branch))
+              remote-location))
+        (inhibit-read-only t))
+    (with-current-buffer buffer
+      (vc-got--log nil nil (vc-got--current-branch) rl))))
+
 (defvar vc-got--last-pack-fetch (make-hash-table :test 'equal)
   "Hash table of (remote . seconds) when repository fetch was triggered by VC.
 Used for caching the fetch results.")
