@@ -67,7 +67,7 @@
 ;; - merge-branch                       DONE
 ;; - merge-news                         NOT NEEDED, for non-distributed VCS
 ;; - pull                               DONE
-;; - push                               DONE (removed in emacs-git vc?)
+;; - push                               DONE
 ;; - steal-lock                         NOT NEEDED, `got' is not using locks
 ;; - get-change-comment                 DONE
 ;; - modify-change-comment              NOT IMPLEMENTED
@@ -105,7 +105,7 @@
 ;; TAG SYSTEM
 ;; - create-tag                         DONE
 ;; - retrieve-tag                       DONE
-;; - working-branch                     NOT IMPLEMENTED
+;; - working-branch                     DONE
 ;; - trunk-or-topic-p                   NOT IMPLEMENTED
 ;; - topic-outgoing-base                NOT IMPLEMENTED
 ;;
@@ -610,6 +610,15 @@ If optional COMMIT is given, start the new branch from it."
 (defun vc-got-update-on-retrieve-tag ()
   "Like vc-git, vc-got don't need to buffers on `retrieve-tag'."
   nil)
+
+(defun vc-got-working-branch ()
+  "Return the name of current working branch or nil."
+  (ignore-errors
+    (with-temp-buffer
+      (vc-got-command t 0 "branch")
+      (buffer-substring-no-properties
+       (point-min)
+       (1- (point-max))))))
 
 (defalias 'vc-got-async-checkins #'ignore)
 
