@@ -888,15 +888,17 @@ It's like `vc-process-filter' but supports \\r inside S."
               (insert (match-string 1 s)))
             (set-marker (process-mark proc) (point))))))))
 
-(defun vc-got--push-pull (cmd op prompt)
-  "Execute CMD OP, or prompt the user if PROMPT is non-nil."
+(defun vc-got--push-pull (cmd args prompt)
+  "Execute CMD with ARGS, or prompt the user if PROMPT is non-nil."
   (let ((buffer (format "*vc-got : %s*" (expand-file-name default-directory))))
     (when-let* ((cmd (if prompt
-                         (split-string
-                          (read-shell-command (format "%s %s command: " cmd op)
-                                              (format "%s %s " cmd op))
-                          " " t)
-                       (list cmd op))))
+                         (let ((full-cmd (mapconcat #'identity
+                                                    (cons cmd args) " ")))
+                           (split-string
+                            (read-shell-command (format "%s command: " full-cmd)
+                                                (format "%s " full-cmd))
+                            " " t))
+                       (cons cmd args))))
       (apply #'vc-do-async-command buffer default-directory cmd)
       (with-current-buffer buffer
         (vc-compilation-mode 'got)
@@ -915,7 +917,7 @@ It's like `vc-process-filter' but supports \\r inside S."
 ;; TODO: this could be expanded.  After a pull the worktree needs to
 ;; be updated, either with a ``got update -b branch-name'' or ``got
 ;; update -b remote/branchname'' plus a rebase.
-;; TODO: can this handle prefix argument? pull does fetch, C-u pull does update?
+;; TODO: should this use prefix? pull -> fetch, C-u pull -> update?
 (defun vc-got-pull (prompt)
   "Execute a fetch prompting for the full command if PROMPT is not nil."
   (vc-got--push-pull vc-got-program
