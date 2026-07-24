@@ -236,6 +236,11 @@ assossiated with revisions along side the diff."
   :type '(choice (const :tag "No" nil)
                  (const :tag "Yes" t)))
 
+(defcustom vc-got-delete-after-integrate nil
+  "Non-nil to delete branch after successful integration to another."
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t)))
+
 ;; internal variables
 
 (defconst vc-got--commit-re "^commit \\([a-z0-9]+\\)"
@@ -895,14 +900,12 @@ rebase.  Some actions take BRANCH argument."
 (defun vc-got-integrate ()
   "Prompt for a branch and integrate it into the current one."
   (interactive)
-  ;; XXX: be smart and try to "got rebase" if "got integrate" fails?
   (when-let* ((branch (vc-got--prompt-branch "Integrate with branch: ")))
-    ;; we could add
-    ;; handle state changes: continue, force, abort
-    ;; `vc-got-integrate' as separate command.
-    (vc-got-command nil 0 nil "integrate" branch)
-    ;; TODO: add customization to delete branch after integration
-    ))
+    (vc-got--integrate branch)
+    (message "Branch %s is integrated to %s" branch (vc-got--current-branch))
+    (when vc-got-delete-after-integrate
+      (vc-got-command t 0 nil "branch" "-d" branch)
+      (message "Deleted integrated branch %s" branch))))
 
 (defun vc-got--proc-filter (proc s)
   "Custom output filter for async process PROC.
