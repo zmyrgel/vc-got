@@ -455,11 +455,12 @@ ROOT is the root of the repo."
   (vc-got-with-worktree (car files)
     (vc-got-command nil 0 files "revert")))
 
-(defun vc-got--list-branches ()
-  "Return an alist of (branch . commit)."
+(defun vc-got--list-branches (&optional sort-mtime)
+  "Return an alist of (branch . commit). If optional SORT-MTIME is non-nil
+value, sort the branches by modification time instead of lexicographical order."
   (let (process-file-side-effects)
     (with-temp-buffer
-      (vc-got-command t 0 nil "branch" "-l")
+      (vc-got-command t 0 nil "branch" (if sort-mtime "-lt" "-l"))
       (let (alist)
         (goto-char (point-min))
         (while (re-search-forward "^\\*?[[:space:]]+\\(.+\\): \\([[:word:]]+\\)$"
@@ -483,8 +484,7 @@ ROOT is the root of the repo."
 
 (defun vc-got--prompt-branch (message)
   "Prompt user for a branch.  The prompt displays MESSAGE for the user."
-  ;; TODO: sort branches
-  (completing-read message (mapcar #'car (vc-got--list-branches))))
+  (completing-read message (mapcar #'car (vc-got--list-branches t))))
 
 (defun vc-got--current-branch ()
   "Return the current branch."
