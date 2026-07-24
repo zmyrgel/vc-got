@@ -860,7 +860,7 @@ merge.  Some actions take BRANCH argument."
     (apply #'vc-got-command nil 0 nil "merge" args)))
 
 (defun vc-got-merge-branch ()
-  "Prompt for a branch and integrate it into the current one."
+  "Prompt for a branch and merge it into the current one."
   (if (memq 'merge (vc-got--cmds-in-progress))
       (when-let* ((action (completing-read "Merge in progress, what to do? "
                                            '(abort continue force))))
