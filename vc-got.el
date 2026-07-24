@@ -520,22 +520,26 @@ the specified PATHS."
 
 (defun vc-got--diff-hunk-filter (files)
   "Filters the diff hunks in a buffer to those matching FILES."
-  (save-excursion
-    (goto-char (point-min))
-    (while (re-search-forward vc-got--commit-header-re nil t)
-      (let ((hunk-file (match-string-no-properties 3)))
-        (unless (member hunk-file files)
-          (goto-char (match-beginning 0)) ;; point to start of hunk
-          (delete-region
-           (point)
-           ;; first search to the end of current hunk headers, next
-           ;; search goes to next hunk. So we either delete from start
-           ;; of current hunk to the start of next hunk (if found) or to
-           ;; the end of file.
-           (if (and (re-search-forward vc-got--commit-header-re nil t)
-                    (re-search-forward vc-got--commit-header-re nil t))
-               (goto-char (match-beginning 0))
-             (goto-char (point-max)))))))))
+  (let ((repository-relative-files
+         (mapcar (lambda (file)
+                   (file-relative-name file (vc-root-dir)))
+                 files)))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward vc-got--commit-header-re nil t)
+        (let ((hunk-file (match-string-no-properties 3)))
+          (unless (member hunk-file repository-relative-files)
+            (goto-char (match-beginning 0)) ;; point to start of hunk
+            (delete-region
+             (point)
+             ;; first search to the end of current hunk headers, next
+             ;; search goes to next hunk. So we either delete from start
+             ;; of current hunk to the start of next hunk (if found) or to
+             ;; the end of file.
+             (if (and (re-search-forward vc-got--commit-header-re nil t)
+                      (re-search-forward vc-got--commit-header-re nil t))
+                 (goto-char (match-beginning 0))
+               (goto-char (point-max))))))))))
 
 (defun vc-got--diff-files (files &optional async)
   "Compute the local modifications to FILES.
