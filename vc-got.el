@@ -868,6 +868,30 @@ merge.  Some actions take BRANCH argument."
     (when-let* ((branch (vc-got--prompt-branch "Merge with branch: ")))
       (vc-got--merge 'start branch))))
 
+(defun vc-got--rebase (action &optional branch)
+  "Internal command for rebasing.  The ACTION determine the flags passed to
+rebase.  Some actions take BRANCH argument."
+  (let ((args (cond ((eq action 'start)
+                     (list branch))
+                    ((eq action 'abort)
+                     '("-a"))
+                    ((eq action 'continue)
+                     '("-c"))
+                    ((eq action 'force)
+                     '("-c" "-C"))
+                    (t (error "Unknown action: %s" action)))))
+    (apply #'vc-got-command nil 0 nil "rebase" args)))
+
+(defun vc-got-rebase ()
+  "Prompt for a branch and rebase it into the current one."
+  (interactive)
+  (if (memq 'rebase (vc-got--cmds-in-progress))
+      (when-let* ((action (completing-read "Rebase in progress, what to do? "
+                                           '(abort continue force))))
+        (vc-got--rebase action))
+    (when-let* ((branch (vc-got--prompt-branch "Rebase with branch: ")))
+      (vc-got--rebase 'start branch))))
+
 (defun vc-got-integrate ()
   "Prompt for a branch and integrate it into the current one."
   (interactive)
