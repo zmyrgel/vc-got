@@ -501,11 +501,10 @@ ROOT is the root of the repo."
   "Update to a different commit or BRANCH.
 Optionally restrict the update operation to files at or within
 the specified PATHS."
-  (let ((buffer-name (format "*vc-got : %s*" (expand-file-name default-directory)))
+  (let ((buffer (get-buffer-create (format "*vc-got : %s*" (expand-file-name default-directory))))
         (cmd-args (list "update" "-b" branch)))
-    (with-current-buffer buffer-name
-      (apply #'vc-do-async-command buffer-name paths vc-got-program
-             cmd-args)
+    (with-current-buffer buffer
+      (apply #'vc-do-async-command buffer paths vc-got-program cmd-args)
       (vc-compilation-mode 'got)
       (let ((comp-cmd (mapconcat #'identity (cons vc-got-program cmd-args) " "))
             (proc (get-buffer-process (current-buffer))))
