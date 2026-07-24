@@ -694,7 +694,7 @@ FILES is nil, consider all the files in DIR."
             (vc-got--repo-root) "\n"
             (when remote
               (concat
-               (propertize "Remote URL : " 'face 'font-lock-type-face)
+               (propertize "Remote     : " 'face 'font-lock-type-face)
                (vc-got-repository-url dir) "\n"))
             (propertize "Branch     : " 'face 'font-lock-type-face)
             (vc-got--current-branch))))
