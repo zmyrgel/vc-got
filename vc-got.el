@@ -328,7 +328,7 @@ The output will be placed in the current buffer."
   "Returns a list of commands which are in progress in the worktree."
   (when-let* ((uuid (vc-got--work-tree-uuid default-directory)))
     (with-temp-buffer
-      (vc-got-command t 0 nil "status")
+      (vc-got-command t nil nil "status")
       (goto-char (point-min))
       (let ((repo-dir (vc-got--repo-root))
             (wt-base "refs/got/worktree")
@@ -347,6 +347,9 @@ The output will be placed in the current buffer."
         (when (save-excursion
                 (re-search-forward "Work tree is rebasing" nil t))
           (push 'rebase cmds-in-progress))
+        (when (save-excursion
+                (re-search-forward "worktree already locked" nil t))
+          (push 'locked cmds-in-progress))
         cmds-in-progress))))
 
 (defun vc-got--log (&optional path limit start-commit stop-commit
