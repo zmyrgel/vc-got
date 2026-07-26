@@ -581,19 +581,17 @@ files on disk."
            (list (and force "-f")
                  (and keep-local "-k")))))
 
-(defun vc-got--ref ()
-  "Return a list of all references."
+(defun vc-got--list-ref (&optional name)
+  "Return a list of all references or filtered by NAME."
   (let ((process-file-side-effects nil)
-        (re "^refs/\\(heads\\|remotes\\|tags\\)/\\(.*\\):")
-        ;; hardcoding HEAD because it's always present and the regexp
-        ;; won't match it.
-        (table (list "HEAD")))
+        (table '()))
     (vc-got-with-worktree default-directory
       (with-temp-buffer
-        (vc-got-command t 0 nil "ref" "-l")
+        (vc-got-command t 0 nil "ref" "-l" name)
         (goto-char (point-min))
-        (while (re-search-forward re nil t)
-          (push (match-string 2) table))
+        (while (re-search-forward "\\(.*\\):\\(.*\\)" nil t)
+          (push (cons (match-string 1) (match-string 2))
+                table))
         table))))
 
 (defun vc-got--branch (name &optional commit)
@@ -1169,7 +1167,19 @@ Heavily inspired by `vc-git-log-view-mode'."
 Ignores FILES because GoT doesn't have the concept of ``file
 revisions''; instead, like with git, you have tags and branches."
   (letrec ((table (lazy-completion-table
-                   table (lambda () (vc-got--ref)))))
+                   table
+                   (lambda ()
+                     (let ((re "^refs/\\(heads\\|remotes\\|tags\\)/\\(.*\\)")
+                           ;; hardcoding HEAD because it's always present and the regexp
+                           ;; won't match it.
+                           (refs (list "HEAD")))
+                       (mapc (lambda (r)
+                               (let ((ref-name (car r)))
+                                 (when (string-match re ref-name)
+                                   (push (match-string 2 ref-name)
+                                         refs))))
+                             (vc-got--list-ref))
+                       refs)))))
     table))
 
 (defun vc-got-annotate-command (file buf &optional rev)
